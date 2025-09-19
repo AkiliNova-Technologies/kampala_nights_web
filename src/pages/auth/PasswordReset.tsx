@@ -1,6 +1,6 @@
-import { ForgotPasswordForm } from "@/components/forgot-password-form";
+import { PasswordResetCard } from "@/components/password-reset-card ";
 
-export function ForgotPassword() {
+export function PasswordResetPage() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
           <div className="bg-muted relative hidden lg:block">
@@ -11,14 +11,14 @@ export function ForgotPassword() {
             />
           </div>
     
-          <div className="flex items-center justify-center p-6 md:p-10 ">
+          <div className="flex items-center justify-center p-6 md:px-10 ">
             <div className="flex flex-col items-center w-full max-w-md gap-6">
               <img
                 src="/logo.jpeg"
                 alt="Logo"
                 className="h-32 w-32"
               />
-              <ForgotPasswordForm className="w-full max-w-md" />
+              <PasswordResetCard />
             </div>
           </div>
         </div>

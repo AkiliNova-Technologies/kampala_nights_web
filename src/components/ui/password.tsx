@@ -4,75 +4,101 @@ import { cn } from "@/lib/utils"
 
 interface PasswordInputProps extends Omit<React.ComponentProps<"input">, "type"> {
   showStrength?: boolean
+  error?: boolean
+  errorMessage?: string
 }
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, showStrength = false, ...props }, ref) => {
+  ({ className, showStrength = false, error = false, errorMessage, value, onChange, ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false)
-    const [password, setPassword] = React.useState("")
+    const [internalPassword, setInternalPassword] = React.useState("")
+
+    // Sync with external value if provided
+    React.useEffect(() => {
+      if (value !== undefined) {
+        setInternalPassword(value as string);
+      }
+    }, [value]);
 
     const togglePasswordVisibility = () => {
       setShowPassword((prev) => !prev)
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setPassword(e.target.value)
-      props.onChange?.(e)
+      const newValue = e.target.value;
+      setInternalPassword(newValue);
+      onChange?.(e);
     }
 
-    // Optional: Password strength indicator (basic implementation)
+    // Password strength logic
     const getPasswordStrength = () => {
-      if (password.length === 0) return { strength: 0, label: "" }
-      if (password.length < 6) return { strength: 25, label: "Weak" }
-      if (password.length < 10) return { strength: 50, label: "Medium" }
-      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) return { strength: 75, label: "Strong" }
-      return { strength: 100, label: "Very Strong" }
+      if (internalPassword.length === 0) return { strength: 0, label: "", color: "" }
+      if (internalPassword.length < 6) return { strength: 25, label: "Weak", color: "bg-red-500" }
+      if (internalPassword.length < 10) return { strength: 50, label: "Medium", color: "bg-yellow-500" }
+      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(internalPassword)) {
+        return { strength: 75, label: "Strong", color: "bg-green-500" }
+      }
+      return { strength: 100, label: "Very Strong", color: "bg-green-600" }
     }
 
     const strength = getPasswordStrength()
 
     return (
-      <div className="relative">
-        <input
-          ref={ref}
-          type={showPassword ? "text" : "password"}
-          data-slot="input"
-          className={cn(
-            "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 pr-10 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-            "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-            className
-          )}
-          onChange={handleInputChange}
-          {...props}
-        />
-        
-        <button
-          type="button"
-          onClick={togglePasswordVisibility}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label={showPassword ? "Hide password" : "Show password"}
-        >
-          {showPassword ? (
-            <EyeOff className="h-4 w-4" />
-          ) : (
-            <Eye className="h-4 w-4" />
-          )}
-        </button>
+      <div className="flex flex-col gap-2">
+        {/* Input wrapper ensures icon stays aligned */}
+        <div className="relative">
+          <input
+            ref={ref}
+            type={showPassword ? "text" : "password"}
+            data-slot="input"
+            className={cn(
+              "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 pr-10 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+              "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+              "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+              error && "border-destructive focus-visible:ring-destructive/50 focus-visible:border-destructive",
+              className
+            )}
+            value={internalPassword}
+            onChange={handleInputChange}
+            {...props}
+          />
 
-        {showStrength && password.length > 0 && (
-          <div className="mt-2 space-y-1">
+          <button
+            type="button"
+            onClick={togglePasswordVisibility}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? (
+              <Eye className="h-5 w-5" />
+            ) : (
+              <EyeOff className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+
+        {/* Password strength indicator */}
+        {showStrength && internalPassword.length > 0 && (
+          <div className="space-y-1">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Password strength:</span>
               <span className="font-medium">{strength.label}</span>
             </div>
             <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary transition-all duration-300"
+                className={cn("w-full h-full transition-all duration-300 rounded-full", strength.color)}
                 style={{ width: `${strength.strength}%` }}
               />
             </div>
           </div>
+        )}
+
+        {/* Error message with icon */}
+        {error && errorMessage && (
+          <p className="mt-1 text-sm text-destructive flex items-start gap-1">
+            <span className="h-1 w-1 rounded-full bg-destructive mt-1.5 flex-shrink-0"></span>
+            {errorMessage}
+          </p>
         )}
       </div>
     )

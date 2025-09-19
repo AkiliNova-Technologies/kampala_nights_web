@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function PasswordResetCard({
   className,
@@ -19,7 +19,7 @@ export function PasswordResetCard({
     <Card className="w-full min-w-sm max-w-md mx-auto shadow-lg border-0 pt-0">
       <CardHeader className="flex flex-col items-center space-y-4">
         <img
-          src="/src/assets/images/Concord.png"
+          src="/Concord.png"
           alt="reminder"
           className="h-52 w-52 my-0"
         />
@@ -35,8 +35,8 @@ export function PasswordResetCard({
           {...props}
         >
           <p className="text-center">
-            Your password has been successfully updated.
-Your account's security is our priority.
+            Your password has been successfully updated. Your account's security
+            is our priority.
           </p>
 
           {/* Submit */}

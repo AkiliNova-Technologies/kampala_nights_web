@@ -21,7 +21,7 @@ export function EmailVerification({
     <Card className="w-full min-w-sm max-w-md mx-auto shadow-lg border-0 pt-0">
       <CardHeader className="flex flex-col items-center space-y-4">
         <img
-          src="/src/assets/images/Reminder.png"
+          src="/Reminder.png"
           alt="reminder"
           className="h-52 w-52 my-0"
         />

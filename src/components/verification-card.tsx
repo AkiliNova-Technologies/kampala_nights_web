@@ -44,7 +44,7 @@ export function EmailVerification({
           {/* Submit */}
           <Button
             type="submit"
-            className="w-full h-12 bg-blue-800 hover:bg-blue-700"
+            className="w-full h-12 bg-blue-800 text-white hover:bg-blue-700"
           >
             Back to login
           </Button>

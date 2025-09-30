@@ -16,7 +16,7 @@ export function PasswordResetCard({
   };
 
   return (
-    <Card className="w-full min-w-sm max-w-md mx-auto shadow-lg border-0 pt-0">
+    <Card className="w-full min-w-sm max-w-md mx-auto shadow-lg border-0 pt-6">
       <CardHeader className="flex flex-col items-center space-y-4">
         <img
           src="/Concord.png"
@@ -42,7 +42,7 @@ export function PasswordResetCard({
           {/* Submit */}
           <Button
             type="submit"
-            className="w-full h-12 bg-blue-800 hover:bg-blue-700"
+            className="w-full h-12 bg-blue-800 text-white hover:bg-blue-700"
           >
             Sign in
           </Button>

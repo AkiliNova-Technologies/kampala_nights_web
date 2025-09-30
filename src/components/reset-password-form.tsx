@@ -149,7 +149,7 @@ export function ResetPasswordForm({
               
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-blue-800 hover:bg-blue-700"
+                className="w-full h-12 bg-blue-800 text-white hover:bg-blue-700"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Resetting..." : "Reset Password"}

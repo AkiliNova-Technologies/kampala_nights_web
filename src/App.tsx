@@ -20,7 +20,25 @@ import { ToastProvider } from "./components/ui/toast-provider";
 
 // // Dashboards
 // import BusinessLayout from "./dashboards/business/BusinessLayout"
-// import AdminLayout from "./dashboards/admin/AdminLayout"
+import AdminLayout from "./layouts/AdminLayout";
+import BusinessLayout from "./layouts/BusinessLayout";
+import { DashboardHome } from "./pages/admin/DashboardHome";
+import { BusinessesPage } from "./pages/admin/Businesses";
+import { CampaignsPage } from "./pages/admin/Campaigns";
+import { EventsPage } from "./pages/admin/Events";
+import { HotAndColdPage } from "./pages/admin/HotAndCold";
+import { ModerationPage } from "./pages/admin/Moderation";
+import { RevenuePage } from "./pages/admin/Revenue";
+import { SettingsPage } from "./pages/admin/Settings";
+import { SupportPage } from "./pages/admin/Support";
+import { UsersManagementPage } from "./pages/admin/UsersManagement";
+import { BusinessProfilePage } from "./pages/admin/BusinessProfile";
+import BusinessPageLayout from "./layouts/BusinessPageLayout";
+import UserManagementPageLayout from "./layouts/UserManagementPageLayout";
+import { CreateUserPage } from "./pages/admin/CreateUser";
+import EventsPageLayout from "./layouts/EventsPageLayout";
+import { EditUserPage } from "./pages/admin/EditUser";
+import { EventDetailsPage } from "./pages/admin/EventDetails";
 
 // // Business pages
 // import BusinessHome from "./dashboards/business/BusinessHome"
@@ -33,32 +51,50 @@ import { ToastProvider } from "./components/ui/toast-provider";
 function App() {
   return (
     <>
-      <Router>
-        <Routes>
-          Public routes
-          {/* <Route path="/" element={<Home />} /> */}
-          {/* <Route path="/about" element={<About />} /> */}
-          {/* <Route path="/contact" element={<Contact />} /> */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/email-verification" element={<VerificationPage />} />
-          <Route path="/password-reset" element={<PasswordResetPage />} />
-          Business Dashboard with nested routes
-          {/* <Route path="/business" element={<BusinessLayout />}> */}
-          {/* <Route index element={<BusinessHome />} /> */}
-          {/* <Route path="settings" element={<BusinessSettings />} /> */}
-          {/* </Route> */}
-          Admin Dashboard with nested routes
-          {/* <Route path="/admin" element={<AdminLayout />}> */}
-          {/* <Route index element={<AdminHome />} /> */}
-          {/* <Route path="users" element={<AdminUsers />} /> */}
-          {/* </Route> */}
-          404 fallback
-          {/* <Route path="*" element={<h1>Page Not Found</h1>} /> */}
-        </Routes>
-      </Router>
+      
+        <Router>
+          <Routes>
+            Public routes
+            {/* <Route path="/" element={<Home />} /> */}
+            {/* <Route path="/about" element={<About />} /> */}
+            {/* <Route path="/contact" element={<Contact />} /> */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/email-verification" element={<VerificationPage />} />
+            <Route path="/password-reset" element={<PasswordResetPage />} />
+            Business Dashboard with nested routes
+            <Route path="/business" element={<BusinessLayout />}>
+              {/* <Route index element={<BusinessHome />} /> */}
+              {/* <Route path="settings" element={<BusinessSettings />} /> */}
+            </Route>
+            Admin Dashboard with nested routes
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<DashboardHome />} />
+              <Route path="businesses" element={<BusinessPageLayout />}>
+                <Route index element={<BusinessesPage />} />
+                <Route path="profile" element={<BusinessProfilePage />} />
+              </Route>
+              <Route path="campaigns" element={<CampaignsPage />} />
+              <Route path="events" element={<EventsPageLayout />}>
+              <Route index element={<EventsPage />}/>
+              <Route path="event-details" element={<EventDetailsPage />}/>
+              </Route>
+              <Route path="hot-and-cold" element={<HotAndColdPage />} />
+              <Route path="moderation" element={<ModerationPage />} />
+              <Route path="revenue" element={<RevenuePage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="support" element={<SupportPage />} />
+              <Route path="users-management" element={<UserManagementPageLayout />}>
+                <Route index element={<UsersManagementPage />} />
+                <Route path="create-user" element={<CreateUserPage />} />
+                <Route path="edit-user" element={<EditUserPage />} />
+              </Route>
+            </Route>
+            {/* <Route path="*" element={<h1>Page Not Found</h1>} /> */}
+          </Routes>
+        </Router>
       <ToastProvider />
     </>
   );

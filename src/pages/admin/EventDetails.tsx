@@ -1,3 +1,4 @@
+import { RejectEventDialog } from "@/components/reject-event-dialog";
 import { ReportedCases } from "@/components/reported-cases";
 import { SiteHeader } from "@/components/site-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,10 +21,13 @@ import {
   Ticket,
   Banknote,
 } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export function EventDetailsPage() {
   const navigate = useNavigate();
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
   const highVibeData = [
     { day: "Sun", vibe: 85 },
@@ -34,6 +38,17 @@ export function EventDetailsPage() {
     { day: "Fri", vibe: 82 },
     { day: "Sat", vibe: 90 },
   ];
+
+  const handleApproveEvent = () => {
+    navigate(-1);
+    toast.success("Event Approved", {
+      description: "The event has been approved successfully!",
+    });
+  };
+
+  const handleRejectEvent = (reason: string) => {
+    console.log("Rejecting event with reason:", reason);
+  };
 
   const getInitials = (name: string): string => {
     return name
@@ -69,16 +84,18 @@ export function EventDetailsPage() {
                 variant="secondary"
                 size="lg"
                 className="p-2 h-10 bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={handleApproveEvent}
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
+                <CheckCircle className="h-4 w-4 mr-0" />
                 Approve Event
               </Button>
               <Button
                 variant="secondary"
                 size="lg"
                 className="p-2 h-10 bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => setRejectDialogOpen(true)}
               >
-                <X className="h-4 w-4 mr-2" />
+                <X className="h-4 w-4 mr-0" />
                 Reject Event
               </Button>
             </div>
@@ -107,7 +124,9 @@ export function EventDetailsPage() {
                       <h2 className="text-2xl font-bold">
                         Saturday Night Fever
                       </h2>
-                      <Badge variant={"secondary"} className="text-orange-600">Pending</Badge>
+                      <Badge variant={"secondary"} className="text-orange-600">
+                        Pending
+                      </Badge>
                     </div>
                     <p className="text-gray-600 mt-2">
                       The ultimate nightclub experience with world-class DJs,
@@ -297,6 +316,13 @@ export function EventDetailsPage() {
           </div>
         </div>
       </div>
+
+      <RejectEventDialog
+        open={rejectDialogOpen}
+        onOpenChange={setRejectDialogOpen}
+        eventName="Saturday Night Fever"
+        onReject={handleRejectEvent}
+      />
     </>
   );
 }

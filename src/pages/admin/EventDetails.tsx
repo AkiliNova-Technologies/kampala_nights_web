@@ -30,13 +30,13 @@ export function EventDetailsPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
   const highVibeData = [
-    { day: "Sun", vibe: 85 },
-    { day: "Mon", vibe: 92 },
-    { day: "Tue", vibe: 78 },
-    { day: "Wed", vibe: 88 },
-    { day: "Thu", vibe: 95 },
-    { day: "Fri", vibe: 82 },
-    { day: "Sat", vibe: 90 },
+    { time: "10pm", vibe: 85 },
+    { time: "11pm", vibe: 92 },
+    { time: "12am", vibe: 78 },
+    { time: "1am", vibe: 88 },
+    { time: "2am", vibe: 95 },
+    { time: "3am", vibe: 82 },
+    { time: "4am", vibe: 90 },
   ];
 
   const handleApproveEvent = () => {
@@ -59,18 +59,17 @@ export function EventDetailsPage() {
   };
 
   return (
-    <>
+    <div className="min-h-screen">
       <SiteHeader />
-
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto py-6">
+      <main className="flex-1">
+        <div className="space-y-6 p-6">
           {/* Header Section */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-4">
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
-                className="p-2"
+                className="p-2 bg-background dark:bg-card"
                 onClick={() => navigate(-1)}
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -83,7 +82,7 @@ export function EventDetailsPage() {
               <Button
                 variant="secondary"
                 size="lg"
-                className="p-2 h-10 bg-blue-600 hover:bg-blue-700 text-white"
+                className="p-2 h-10 bg-[#5014D0] hover:bg-[#5014D0]/70 text-white"
                 onClick={handleApproveEvent}
               >
                 <CheckCircle className="h-4 w-4 mr-0" />
@@ -315,7 +314,7 @@ export function EventDetailsPage() {
             </Tabs>
           </div>
         </div>
-      </div>
+      </main>
 
       <RejectEventDialog
         open={rejectDialogOpen}
@@ -323,6 +322,6 @@ export function EventDetailsPage() {
         eventName="Saturday Night Fever"
         onReject={handleRejectEvent}
       />
-    </>
+    </div>
   );
 }

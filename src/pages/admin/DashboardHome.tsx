@@ -22,7 +22,6 @@ import { BusinessStatusDialog } from "@/components/update-business-status";
 import { DeleteBusinessDialog } from "@/components/delete-business-dialog";
 import type { Business } from "@/types/business";
 
-
 export function DashboardHome() {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     null
@@ -134,7 +133,6 @@ export function DashboardHome() {
     },
   ];
 
-
   // Helper function to get initials from business name
   const getInitials = (name: string): string => {
     return name
@@ -184,7 +182,7 @@ export function DashboardHome() {
       enableHiding: false,
       cell: (_, row) => (
         <div className="flex items-center gap-3">
-          <Avatar className="size-10">
+          <Avatar className="h-11 w-11">
             <AvatarImage src={row.image} alt={row.business} />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {getInitials(row.business)}
@@ -245,71 +243,64 @@ export function DashboardHome() {
   ];
 
   const businessActions: TableAction<Business>[] = [
-    // {
-    //   type: "view",
-    //   label: "View Details",
-    //   icon: <EyeIcon className="size-5" />,
-    //   onClick: (business) => {
-    //     console.log("View business:", business);
-    //     // Add your view logic here
-    //   },
-    // },
     {
       type: "edit",
       label: "Edit Status",
-      icon: <PenIcon className="size-5" />,
+      icon: <PenIcon className="size-5 text-[#8C8C8C]" />,
       onClick: handleEditClick,
     },
     {
       type: "delete",
       label: "Delete Business",
-      icon: <TrashIcon className="size-5" />,
+      icon: <TrashIcon className="size-5 text-[#8C8C8C]" />,
       onClick: handleDeleteClick,
     },
   ];
 
   return (
-    <>
+    <div className="min-h-screen">
       <SiteHeader />
-      <div className="space-y-6">
-        <SectionCards cards={dashboardCards} />
+      <main className="flex-1">
+        <div className="space-y-6 p-6">
+          <SectionCards cards={dashboardCards} />
 
-        <div className="space-y-6">
-          <PlatformActivityChart />
+          <div className="space-y-6">
+            <PlatformActivityChart />
 
-          {/* Recent Business Applications Section */}
-          <div className="rounded-lg border bg-card py-6 mb-6">
-            <DataTable<Business>
-              title="Recent Business Applications"
-              description="Latest businesses requesting to join the platform"
-              data={businessData}
-              fields={businessFields}
-              actions={businessActions}
-              enableSelection={true}
-              enablePagination={true}
-              pageSize={5}
-              onRowClick={(business) => {
-                console.log("Row clicked:", business);
-              }}
-            />
+            {/* Recent Business Applications Section */}
+            <div className="rounded-lg border bg-card py-6 mb-6">
+              <DataTable<Business>
+                title="Recent Business Applications"
+                description="Latest businesses requesting to join the platform"
+                data={businessData}
+                fields={businessFields}
+                actions={businessActions}
+                enableSelection={true}
+                enablePagination={true}
+                pageSize={5}
+                onRowClick={(business) => {
+                  console.log("Row clicked:", business);
+                }}
+              />
+            </div>
           </div>
+
+          {/* Status Update Dialog */}
+          <BusinessStatusDialog
+            business={selectedBusiness}
+            isOpen={isStatusDialogOpen}
+            onClose={() => setIsStatusDialogOpen(false)}
+            onStatusUpdate={handleStatusUpdate}
+          />
+
+          <DeleteBusinessDialog
+            business={selectedBusiness}
+            isOpen={isDeleteDialogOpen}
+            onClose={() => setIsDeleteDialogOpen(false)}
+            onDelete={handleDeleteBusiness}
+          />
         </div>
-
-        {/* Status Update Dialog */}
-        <BusinessStatusDialog
-          business={selectedBusiness}
-          isOpen={isStatusDialogOpen}
-          onClose={() => setIsStatusDialogOpen(false)}
-          onStatusUpdate={handleStatusUpdate}
-        />
-
-        <DeleteBusinessDialog
-          business={selectedBusiness}
-          isOpen={isDeleteDialogOpen}
-          onClose={() => setIsDeleteDialogOpen(false)}
-          onDelete={handleDeleteBusiness}
-        />
-      </div>
-    </>
+      </main>
+    </div>
   );
 }

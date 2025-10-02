@@ -12,16 +12,9 @@ import { PasswordResetPage } from "./pages/auth/PasswordReset";
 import { ToastProvider } from "./components/ui/toast-provider";
 // import "./App.css"
 
-// // Pages
-// import Home from "./pages/Home"
-// import About from "./pages/About"
-// import Contact from "./pages/Contact"
-// import Login from "./pages/Login"
 
-// // Dashboards
-// import BusinessLayout from "./dashboards/business/BusinessLayout"
+// Admin pages
 import AdminLayout from "./layouts/AdminLayout";
-import BusinessLayout from "./layouts/BusinessLayout";
 import { DashboardHome } from "./pages/admin/DashboardHome";
 import { BusinessesPage } from "./pages/admin/Businesses";
 import { CampaignsPage } from "./pages/admin/Campaigns";
@@ -40,13 +33,17 @@ import EventsPageLayout from "./layouts/EventsPageLayout";
 import { EditUserPage } from "./pages/admin/EditUser";
 import { EventDetailsPage } from "./pages/admin/EventDetails";
 
-// // Business pages
-// import BusinessHome from "./dashboards/business/BusinessHome"
-// import BusinessSettings from "./dashboards/business/BusinessSettings"
+// Business pages
+import BusinessLayout from "./layouts/BusinessLayout";
+import { BusinessHome } from "./pages/business/BusinessHome";
+import { CalendarPage } from "./pages/business/Calendar";
+import { ReservationsPage } from "./pages/business/Reservations";
+import { PromotionsPage } from "./pages/business/Promotions";
+import { InvoicePage } from "./pages/business/Invoice";
+import { BusinessSettingsPage } from "./pages/business/Settings";
+import { BusinessEventsPage } from "./pages/business/BusinessEvents";
+import { GalleryPage } from "./pages/business/Gallery";
 
-// // Admin pages
-// import AdminHome from "./dashboards/admin/AdminHome"
-// import AdminUsers from "./dashboards/admin/AdminUsers"
 
 function App() {
   return (
@@ -54,7 +51,6 @@ function App() {
       
         <Router>
           <Routes>
-            Public routes
             {/* <Route path="/" element={<Home />} /> */}
             {/* <Route path="/about" element={<About />} /> */}
             {/* <Route path="/contact" element={<Contact />} /> */}
@@ -64,12 +60,16 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/email-verification" element={<VerificationPage />} />
             <Route path="/password-reset" element={<PasswordResetPage />} />
-            Business Dashboard with nested routes
             <Route path="/business" element={<BusinessLayout />}>
-              {/* <Route index element={<BusinessHome />} /> */}
-              {/* <Route path="settings" element={<BusinessSettings />} /> */}
+              <Route index element={<BusinessHome />} />
+              <Route path="events" element={<BusinessEventsPage />} />
+              <Route path="calendar" element={<CalendarPage />} />
+              <Route path="reservations" element={<ReservationsPage />} />
+              <Route path="promotions" element={<PromotionsPage />} />
+              <Route path="invoices" element={<InvoicePage />} />
+              <Route path="gallery" element={<GalleryPage />} />
+              <Route path="settings" element={<BusinessSettingsPage />} />
             </Route>
-            Admin Dashboard with nested routes
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<DashboardHome />} />
               <Route path="businesses" element={<BusinessPageLayout />}>

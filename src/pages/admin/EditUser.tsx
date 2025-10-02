@@ -131,17 +131,16 @@ export function EditUserPage() {
   };
 
   return (
-    <>
+    <div className="min-h-screen">
       <SiteHeader />
-
-      <div className="">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-1">
+        <div className=" space-y-6 p-6">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
-                className="p-2"
+                className="p-2 bg-background dark:bg-card"
                 onClick={() => navigate(-1)}
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -155,20 +154,24 @@ export function EditUserPage() {
           </div>
 
           {/* Create New User Section */}
-          <div className="mb-8 mx-auto">
+          <div className="space-y-6">
             <Card className="rounded-lg shadow-sm border p-6">
               <div className="flex flex-row gap-6">
-                <User2Icon />
+                <div className="size-8 p-1 bg-[#EEF2FF] rounded-sm">
+                  <User2Icon className="text-[#5014D0]" />
+                </div>
                 <h2 className="text-2xl font-bold">Edit User</h2>
               </div>
               <p className="text-gray-600">
-                Edit  User details and specific role assignments and permissions
+                Edit User details and specific role assignments and permissions
               </p>
 
               {/* User Profile Section */}
               <div className="mb-8">
                 <div className="flex flex-row gap-4">
-                  <User2Icon />
+                  <div className="size-8 p-1 bg-[#EEF2FF] rounded-sm">
+                  <User2Icon className="text-[#5014D0]" />
+                </div>
                   <h3 className="text-lg font-semibold mb-4">User Profile</h3>
                 </div>
 
@@ -214,6 +217,27 @@ export function EditUserPage() {
                     />
                   </div>
 
+                  {/* Department */}
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Department</Label>
+                    <Select
+                      value={selectedRole}
+                      onValueChange={handleRoleChange}
+                    >
+                      <SelectTrigger className="w-full min-h-12">
+                        <SelectValue placeholder="Select Department e.g Marketing" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="super admin">Super Admin</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="marketing">Marketing</SelectItem>
+                        <SelectItem value="operations">Operations</SelectItem>
+                        <SelectItem value="finance">Finance</SelectItem>
+                        <SelectItem value="helpdesk">Helpdesk</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Primary Role */}
                   <div className="space-y-2">
                     <Label htmlFor="role">Primary Role</Label>
@@ -236,7 +260,7 @@ export function EditUserPage() {
                   </div>
 
                   {/* User Status */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 col-span-2">
                     <Label htmlFor="status">Status</Label>
                     <Select
                       value={selectedRole}
@@ -248,7 +272,7 @@ export function EditUserPage() {
                       <SelectContent>
                         <SelectItem value="super admin">Active</SelectItem>
                         <SelectItem value="super admin">Inactive</SelectItem>
-                        <SelectItem value="admin">Suspended</SelectItem>                  
+                        <SelectItem value="admin">Suspended</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -658,14 +682,14 @@ export function EditUserPage() {
                 >
                   Cancel
                 </Button>
-                <Button className="bg-blue-600 text-white hover:bg-blue-500 flex h-12 text-md flex-1">
+                <Button className="bg-[#5014D0] hover:bg-[#5014D0]/70 text-white flex h-12 text-md flex-1">
                   Create User
                 </Button>
               </div>
             </Card>
           </div>
         </div>
-      </div>
-    </>
+      </main>
+    </div>
   );
 }

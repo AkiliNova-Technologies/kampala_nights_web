@@ -1,6 +1,6 @@
 "use client";
 
-import { Area, AreaChart } from "recharts";
+import { Bar, BarChart } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/chart";
 
 interface VibeData {
-  day: string;
+  time: string;
   vibe: number;
 }
 
@@ -18,6 +18,8 @@ interface VibeCoreChartProps {
   className?: string;
   showTooltip?: boolean;
   animate?: boolean;
+  chartHeight?: number;
+  barSize?: number;
 }
 
 export function VibeCoreChart({
@@ -26,6 +28,8 @@ export function VibeCoreChart({
   className = "",
   showTooltip = true,
   animate = true,
+  chartHeight = 100,
+  barSize = 25,
 }: VibeCoreChartProps) {
   return (
     <div className={`${className}`}>
@@ -38,29 +42,37 @@ export function VibeCoreChart({
             color: "hsl(var(--primary))",
           },
         }}
-        className="h-20 w-full"
+        className="w-full"
+        style={{ height: `${chartHeight}px` }}
       >
-        <AreaChart
+        <BarChart
           data={data}
-          margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+          margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+          barSize={barSize}
+          barGap={2}
         >
           <defs>
-            <linearGradient id="vibeGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8884d8" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1} />
+            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#5014D0" stopOpacity={1} />
+              <stop offset="100%" stopColor="#E7E0FB" stopOpacity={1} />
             </linearGradient>
           </defs>
-          <Area
+          <Bar
             dataKey="vibe"
-            type="natural"
-            fill="url(#vibeGradient)"
-            stroke="#8884d8"
-            strokeWidth={1.5}
+            fill="url(#barGradient)"
+            radius={[20, 20, 20, 20]}
             isAnimationActive={animate}
             animationDuration={1000}
+            activeBar={{
+              fill: "url(#barGradient)",
+              opacity: 0.7,
+              radius: 20,
+            }}
+            
           />
           {showTooltip && (
             <ChartTooltip
+              cursor={{ fill: "rgba(80, 20, 208, 0.1)" }}
               content={
                 <ChartTooltipContent
                   formatter={(value) => [`${value} points`]}
@@ -68,14 +80,14 @@ export function VibeCoreChart({
               }
             />
           )}
-        </AreaChart>
+        </BarChart>
       </ChartContainer>
 
-      {/* Day labels */}
+      {/* Time labels */}
       <div className="flex justify-between text-sm text-muted-foreground mt-2">
         {data.map((item) => (
-          <span key={item.day} className="text-xs">
-            {item.day}
+          <span key={item.time} className="text-xs">
+            {item.time}
           </span>
         ))}
       </div>

@@ -50,9 +50,12 @@ export function LoginForm({
     }
 
     // Dummy authentication check
-    if (email === "test@email.com" && password === "password123") {
+    if (email === "admin@gmail.com" && password === "password123") {
       setAuthError(null);
       navigate("/admin");
+    } else if (email === "business@gmail.com" && password === "password123") {
+      setAuthError(null);
+      navigate("/business/settings");
     } else {
       setAuthError("Invalid email or password");
     }
@@ -119,7 +122,7 @@ export function LoginForm({
             {/* Submit */}
             <Button
               type="submit"
-              className="w-full h-12 bg-blue-800 text-white hover:bg-blue-700"
+              className="w-full h-12 bg-[#5014D0] text-white hover:bg-[#5014D0]/90"
             >
               Sign in
             </Button>

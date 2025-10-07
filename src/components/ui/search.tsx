@@ -75,7 +75,7 @@ const Search = React.forwardRef<HTMLInputElement, SearchProps>(
 
     return (
       <div className="w-full relative">
-        <div className="relative">
+        <div className="relative rounded-full">
           <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           
           <input
@@ -92,7 +92,7 @@ const Search = React.forwardRef<HTMLInputElement, SearchProps>(
             aria-invalid={!!error}
             className={cn(
               "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-11 w-full min-w-0 rounded-full border bg-transparent py-1 pr-10 pl-9 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-              "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+              "focus-visible:border-ring focus-visible:ring-[#5014D0] focus-visible:ring-[1px]",
               error && "border-destructive ring-destructive/20",
               className
             )}

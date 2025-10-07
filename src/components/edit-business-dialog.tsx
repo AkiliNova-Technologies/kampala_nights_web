@@ -77,7 +77,7 @@ export function EditBusinessDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#5014D0] hover:bg-[#5014D0]/70 text-white">
+        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
           <Edit className="h-4 w-4 mr-2" />
           Edit Business
         </Button>
@@ -191,7 +191,7 @@ export function EditBusinessDialog({
           <Button
             onClick={handleSave}
             disabled={isLoading}
-            className="bg-[#5014D0] hover:bg-[#5014D0]/70 text-white h-10 w-full sm:w-auto sm:flex-1"
+            className="bg-blue-600 hover:bg-blue-700 text-white h-10 w-full sm:w-auto sm:flex-1"
           >
             {isLoading ? "Saving..." : "Save Changes"}
           </Button>

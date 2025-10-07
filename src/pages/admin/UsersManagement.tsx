@@ -32,17 +32,12 @@ import {
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-type UserRoleTab =
-  | "all"
-  | "super-admins"
-  | "admins"
-  | "operations"
-  | "marketing"
-  | "helpdesk";
+
+type UserRoleTab = "all" | "super-admins" | "admins" | "operations" | "marketing" | "helpdesk";
 
 export function UsersManagementPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-
+  
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<UserRoleTab>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -233,9 +228,7 @@ export function UsersManagementPage() {
       icon: <Crown className="size-4" />,
       iconBgColor: "bg-red-600",
       title: "Super Admins",
-      value: userData
-        .filter((user) => user.role === "super-admin")
-        .length.toString(),
+      value: userData.filter((user) => user.role === "super-admin").length.toString(),
       change: {
         description: "Highest access level",
       },
@@ -253,9 +246,7 @@ export function UsersManagementPage() {
       icon: <Calculator className="size-4" />,
       iconBgColor: "bg-orange-600",
       title: "Operations Staff",
-      value: userData
-        .filter((user) => user.role === "operations")
-        .length.toString(),
+      value: userData.filter((user) => user.role === "operations").length.toString(),
       change: {
         description: "Finance & Operations",
       },
@@ -264,10 +255,8 @@ export function UsersManagementPage() {
       icon: <HeadsetIcon className="size-4" />,
       iconBgColor: "bg-purple-600",
       title: "Support Staff",
-      value: (
-        userData.filter((user) => user.role === "marketing").length +
-        userData.filter((user) => user.role === "helpdesk").length
-      ).toString(),
+      value: (userData.filter((user) => user.role === "marketing").length + 
+             userData.filter((user) => user.role === "helpdesk").length).toString(),
       change: {
         description: "Marketing & Helpdesk",
       },
@@ -282,8 +271,11 @@ export function UsersManagementPage() {
       .slice(0, 2);
   };
 
+
   const handleDeleteUser = (userId: number) => {
-    setUserData((prevData) => prevData.filter((user) => user.id !== userId));
+    setUserData((prevData) =>
+      prevData.filter((user) => user.id !== userId)
+    );
     console.log(`Deleted user: ${userId}`);
   };
 
@@ -299,7 +291,7 @@ export function UsersManagementPage() {
       enableHiding: false,
       cell: (_, row) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-11 w-11">
+          <Avatar className="size-10">
             <AvatarImage src={row.image} alt={row.name} />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {getInitials(row.name)}
@@ -307,7 +299,9 @@ export function UsersManagementPage() {
           </Avatar>
           <div className="flex flex-col">
             <span className="font-medium text-sm">{row.name}</span>
-            <span className="text-xs text-muted-foreground">{row.email}</span>
+            <span className="text-xs text-muted-foreground">
+              {row.email}
+            </span>
           </div>
         </div>
       ),
@@ -317,7 +311,7 @@ export function UsersManagementPage() {
       header: "Role",
       cell: (value) => (
         <span className="font-medium capitalize">
-          {(value as string).replace("-", " ")}
+          {(value as string).replace('-', ' ')}
         </span>
       ),
     },
@@ -372,7 +366,7 @@ export function UsersManagementPage() {
       type: "edit",
       label: "Edit User",
       icon: <PenIcon className="size-5" />,
-      onClick: () => navigate("edit-user"),
+      onClick: ()=>navigate("edit-user"),
     },
     {
       type: "delete",
@@ -383,12 +377,12 @@ export function UsersManagementPage() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <>
       <SiteHeader
         rightActions={
           <>
             <Button
-              className="bg-[#5014D0] hover:bg-[#5014D0]/70 text-white"
+              className="bg-blue-600 text-white hover:bg-blue-800"
               onClick={() => navigate("/admin/users-management/create-user")}
             >
               <PlusIcon />
@@ -397,140 +391,147 @@ export function UsersManagementPage() {
           </>
         }
       />
-      <main className="flex-1">
-        <div className="space-y-6 p-6">
-          <SectionCards cards={userCards} layout="1x5" />
+      <div className="space-y-6">
+        <SectionCards cards={userCards} layout="1x5" />
 
-          <div className="space-y-6">
-            {/* Users Section */}
-            <div className="rounded-lg border bg-card py-6 mb-6">
-              {/* Tabs for filtering users by role */}
-              <Tabs
-                value={activeTab}
-                onValueChange={(value) => setActiveTab(value as UserRoleTab)}
-                className="px-6 w-full bg-transparent rounded-none"
-              >
-                <TabsList className="grid w-full max-w-full grid-cols-6 rounded-none p-0 bg-transparent h-10 border-b-1">
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent h-10"
-                    value="all"
-                  >
-                    All Staff
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent h-10"
-                    value="super-admins"
-                  >
-                    Super Admins
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent h-10"
-                    value="admins"
-                  >
-                    Admins
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent h-10"
-                    value="operations"
-                  >
-                    Operations
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent h-10"
-                    value="marketing"
-                  >
-                    Marketing
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent h-10"
-                    value="helpdesk"
-                  >
-                    Helpdesk
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="all" className="mt-0"></TabsContent>
-                <TabsContent
+        <div className="space-y-6">
+          {/* Users Section */}
+          <div className="rounded-lg border bg-card py-6 mb-6">
+            {/* Tabs for filtering users by role */}
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) =>
+                setActiveTab(value as UserRoleTab)
+              }
+              className="px-6 w-full bg-transparent rounded-none"
+            >
+              <TabsList className="grid w-full max-w-full grid-cols-6 rounded-none p-0 bg-transparent border-b">
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="all"
+                >
+                  All Staff
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
                   value="super-admins"
-                  className="mt-0"
-                ></TabsContent>
-                <TabsContent value="admins" className="mt-0"></TabsContent>
-                <TabsContent value="operations" className="mt-0"></TabsContent>
-                <TabsContent value="marketing" className="mt-0"></TabsContent>
-                <TabsContent value="helpdesk" className="mt-0"></TabsContent>
-              </Tabs>
+                >
+                  Super Admins
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="admins"
+                >
+                  Admins
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="operations"
+                >
+                  Operations
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="marketing"
+                >
+                  Marketing
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="helpdesk"
+                >
+                  Helpdesk
+                </TabsTrigger>
+              </TabsList>
 
-              {/* Search and Filter Section */}
-              <div className="px-6 mt-6 flex flex-col sm:flex-row gap-12 items-start sm:items-center justify-between">
-                <div className="w-full">
-                  <Search
-                    placeholder="Search names, email, role, departments..."
-                    value={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    className="rounded-md"
-                  />
-                </div>
+              <TabsContent value="all" className="mt-0"></TabsContent>
+              <TabsContent value="super-admins" className="mt-0"></TabsContent>
+              <TabsContent value="admins" className="mt-0"></TabsContent>
+              <TabsContent value="operations" className="mt-0"></TabsContent>
+              <TabsContent value="marketing" className="mt-0"></TabsContent>
+              <TabsContent value="helpdesk" className="mt-0"></TabsContent>
+            </Tabs>
 
-                <div className="flex gap-2 items-center">
-                  {/* Status Filter Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="flex items-center gap-2 h-12"
-                      >
-                        <FilterIcon className="w-4 h-4" />
-                        All Status
-                        {selectedStatuses.length > 0 && (
-                          <Badge variant="secondary" className="ml-1">
-                            {selectedStatuses.length}
-                          </Badge>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      {statusOptions.map((status) => (
-                        <DropdownMenuCheckboxItem
-                          key={status.value}
-                          checked={selectedStatuses.includes(status.value)}
-                          onCheckedChange={() =>
-                            handleStatusFilterChange(status.value)
-                          }
-                        >
-                          {status.label}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Clear Filters Button */}
-                  {(selectedStatuses.length > 0 || searchQuery) && (
-                    <Button
-                      variant="ghost"
-                      onClick={clearAllFilters}
-                      className="text-sm"
-                    >
-                      Clear Filters
-                    </Button>
-                  )}
-                </div>
+            {/* Search and Filter Section */}
+            <div className="px-6 mt-6 flex flex-col sm:flex-row gap-12 items-start sm:items-center justify-between">
+              <div className="w-full">
+                <Search
+                  placeholder="Search names, email, role, departments..."
+                  value={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  className="rounded-md"
+                />
               </div>
 
-              <DataTable<User>
-                data={filteredUsers}
-                fields={userFields}
-                actions={userActions}
-                enableSelection={true}
-                enablePagination={true}
-                pageSize={5}
-                onRowClick={(user) => {
-                  console.log("Row clicked:", user);
-                }}
-              />
+              <div className="flex gap-2 items-center">
+                {/* Status Filter Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2 h-12"
+                    >
+                      <FilterIcon className="w-4 h-4" />
+                      All Status
+                      {selectedStatuses.length > 0 && (
+                        <Badge variant="secondary" className="ml-1">
+                          {selectedStatuses.length}
+                        </Badge>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {statusOptions.map((status) => (
+                      <DropdownMenuCheckboxItem
+                        key={status.value}
+                        checked={selectedStatuses.includes(status.value)}
+                        onCheckedChange={() =>
+                          handleStatusFilterChange(status.value)
+                        }
+                      >
+                        {status.label}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Clear Filters Button */}
+                {(selectedStatuses.length > 0 || searchQuery) && (
+                  <Button
+                    variant="ghost"
+                    onClick={clearAllFilters}
+                    className="text-sm"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
             </div>
+
+            {/* Results Count */}
+            <div className="px-6 mt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredUsers.length} of {userData.length}{" "}
+                staff
+                {(selectedStatuses.length > 0 || searchQuery) && " (filtered)"}
+              </p>
+            </div>
+
+            <DataTable<User>
+              data={filteredUsers}
+              fields={userFields}
+              actions={userActions}
+              enableSelection={true}
+              enablePagination={true}
+              pageSize={5}
+              onRowClick={(user) => {
+                console.log("Row clicked:", user);
+              }}
+            />
           </div>
         </div>
-      </main>
+      </div>
+
 
       <DeleteUserDialog
         user={selectedUser}
@@ -538,6 +539,6 @@ export function UsersManagementPage() {
         onClose={() => setIsDeleteDialogOpen(false)}
         onDelete={handleDeleteUser}
       />
-    </div>
+    </>
   );
 }

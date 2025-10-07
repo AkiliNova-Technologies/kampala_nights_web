@@ -332,7 +332,7 @@ export function EventsPage() {
       enableHiding: false,
       cell: (_, row) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-11 w-11">
+          <Avatar className="size-10">
             <AvatarImage src={row.image} alt={row.name} />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {getInitials(row.name)}
@@ -441,141 +441,138 @@ export function EventsPage() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <>
       <SiteHeader />
-      <main className="flex-1">
-        <div className="space-y-6 p-6">
-          <SectionCards cards={eventCards} layout="1x5" />
+      <div className="space-y-6">
+        <SectionCards cards={eventCards} layout="1x5" />
 
-          <div className="space-y-6">
-            {/* Events Section */}
-            <div className="rounded-lg border bg-card py-6 mb-6">
-              {/* Tabs for filtering events by status */}
-              <Tabs
-                value={activeTab}
-                onValueChange={(value) => setActiveTab(value as EventTab)}
-                className="px-6 w-full bg-transparent rounded-none"
-              >
-                <TabsList className="grid w-full max-w-full grid-cols-5 rounded-none p-0 bg-transparent border-b">
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent"
-                    value="all"
-                  >
-                    All Events
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent"
-                    value="active"
-                  >
-                    Active Events
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent"
-                    value="pending"
-                  >
-                    Pending Approvals
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent"
-                    value="suspended"
-                  >
-                    Suspended
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent"
-                    value="past"
-                  >
-                    Past Events
-                  </TabsTrigger>
-                </TabsList>
+        <div className="space-y-6">
+          {/* Events Section */}
+          <div className="rounded-lg border bg-card py-6 mb-6">
+            {/* Tabs for filtering events by status */}
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) => setActiveTab(value as EventTab)}
+              className="px-6 w-full bg-transparent rounded-none"
+            >
+              <TabsList className="grid w-full max-w-full grid-cols-5 rounded-none p-0 bg-transparent border-b">
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="all"
+                >
+                  All Events
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="active"
+                >
+                  Active Events
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="pending"
+                >
+                  Pending Approvals
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="suspended"
+                >
+                  Suspended
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="past"
+                >
+                  Past Events
+                </TabsTrigger>
+              </TabsList>
 
-                <TabsContent value="all" className="mt-0"></TabsContent>
-                <TabsContent value="active" className="mt-0"></TabsContent>
-                <TabsContent value="pending" className="mt-0"></TabsContent>
-                <TabsContent value="suspended" className="mt-0"></TabsContent>
-                <TabsContent value="past" className="mt-0"></TabsContent>
-              </Tabs>
+              <TabsContent value="all" className="mt-0"></TabsContent>
+              <TabsContent value="active" className="mt-0"></TabsContent>
+              <TabsContent value="pending" className="mt-0"></TabsContent>
+              <TabsContent value="suspended" className="mt-0"></TabsContent>
+              <TabsContent value="past" className="mt-0"></TabsContent>
+            </Tabs>
 
-              {/* Search and Filter Section */}
-              <div className="px-6 mt-6 flex flex-col sm:flex-row gap-12 items-start sm:items-center justify-between">
-                <div className="w-full">
-                  <Search
-                    placeholder="Search events, businesses, locations..."
-                    value={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    className="rounded-md"
-                  />
-                </div>
+            {/* Search and Filter Section */}
+            <div className="px-6 mt-6 flex flex-col sm:flex-row gap-12 items-start sm:items-center justify-between">
+              <div className="w-full">
+                <Search
+                  placeholder="Search events, businesses, locations..."
+                  value={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  className="rounded-md"
+                />
+              </div>
 
-                <div className="flex gap-2 items-center">
-                  {/* Status Filter Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="flex items-center gap-2 h-12"
-                      >
-                        <FilterIcon className="w-4 h-4" />
-                        All Status
-                        {selectedStatuses.length > 0 && (
-                          <Badge variant="secondary" className="ml-1">
-                            {selectedStatuses.length}
-                          </Badge>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      {statusOptions.map((status) => (
-                        <DropdownMenuCheckboxItem
-                          key={status.value}
-                          checked={selectedStatuses.includes(status.value)}
-                          onCheckedChange={() =>
-                            handleStatusFilterChange(status.value)
-                          }
-                        >
-                          {status.label}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Clear Filters Button */}
-                  {(selectedStatuses.length > 0 || searchQuery) && (
+              <div className="flex gap-2 items-center">
+                {/* Status Filter Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button
-                      variant="ghost"
-                      onClick={clearAllFilters}
-                      className="text-sm"
+                      variant="outline"
+                      className="flex items-center gap-2 h-12"
                     >
-                      Clear Filters
+                      <FilterIcon className="w-4 h-4" />
+                      All Status
+                      {selectedStatuses.length > 0 && (
+                        <Badge variant="secondary" className="ml-1">
+                          {selectedStatuses.length}
+                        </Badge>
+                      )}
                     </Button>
-                  )}
-                </div>
-              </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {statusOptions.map((status) => (
+                      <DropdownMenuCheckboxItem
+                        key={status.value}
+                        checked={selectedStatuses.includes(status.value)}
+                        onCheckedChange={() =>
+                          handleStatusFilterChange(status.value)
+                        }
+                      >
+                        {status.label}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              {/* Results Count */}
-              <div className="px-6 mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {filteredEvents.length} of {eventData.length} events
-                  {(selectedStatuses.length > 0 || searchQuery) &&
-                    " (filtered)"}
-                </p>
+                {/* Clear Filters Button */}
+                {(selectedStatuses.length > 0 || searchQuery) && (
+                  <Button
+                    variant="ghost"
+                    onClick={clearAllFilters}
+                    className="text-sm"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
               </div>
-
-              <DataTable<Event>
-                data={filteredEvents}
-                fields={eventFields}
-                actions={eventActions}
-                enableSelection={true}
-                enablePagination={true}
-                pageSize={5}
-                onRowClick={(event) => {
-                  console.log("Event clicked:", event);
-                }}
-              />
             </div>
+
+            {/* Results Count */}
+            <div className="px-6 mt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredEvents.length} of {eventData.length} events
+                {(selectedStatuses.length > 0 || searchQuery) && " (filtered)"}
+              </p>
+            </div>
+
+            <DataTable<Event>
+              data={filteredEvents}
+              fields={eventFields}
+              actions={eventActions}
+              enableSelection={true}
+              enablePagination={true}
+              pageSize={5}
+              onRowClick={(event) => {
+                console.log("Event clicked:", event);
+              }}
+            />
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </>
   );
 }

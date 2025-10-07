@@ -227,9 +227,9 @@ function DataTable<TData extends TableData>({
     if (actions.length > 0) {
       baseColumns.push({
         id: "actions",
-        // header: "Actions",
+        header: "Actions",
         cell: ({ row }) => (
-          <div className="flex items-center gap-3 justify-end">
+          <div className="flex items-center gap-4">
             {actions.map((action, index) => (
               <Button
                 key={index}
@@ -237,7 +237,7 @@ function DataTable<TData extends TableData>({
                 size="icon"
                 onClick={() => action.onClick(row.original)}
                 title={action.label || action.type}
-                className="size-8 hover:bg-muted text-[#8C8C8C]"
+                className="size-8 hover:bg-muted"
               >
                 {action.icon ||
                   defaultIcons[action.type as keyof typeof defaultIcons] || (
@@ -360,7 +360,7 @@ function DataTable<TData extends TableData>({
                     onClick={() => onRowClick?.(row.original)}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="py-4">
+                      <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()

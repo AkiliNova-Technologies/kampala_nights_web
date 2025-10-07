@@ -23,6 +23,7 @@ import {
   EyeIcon,
   FilterIcon,
   PenIcon,
+  PlusIcon,
   TrashIcon,
 } from "lucide-react";
 import { useState, useMemo } from "react";
@@ -270,7 +271,7 @@ export function BusinessesPage() {
       enableHiding: false,
       cell: (_, row) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-11 w-11">
+          <Avatar className="size-10">
             <AvatarImage src={row.image} alt={row.business} />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {getInitials(row.business)}
@@ -343,7 +344,7 @@ export function BusinessesPage() {
       icon: <EyeIcon className="size-5" />,
       onClick: (business) => {
         console.log("View business:", business);
-        navigate(`/admin/businesses/profile`);
+        navigate(`/admin/businesses/profile`)
       },
     },
     {
@@ -361,135 +362,141 @@ export function BusinessesPage() {
   ];
 
   return (
-    <div className="min-h-screen">
-      <SiteHeader />
-      <main className="flex-1">
-        <div className="space-y-6 p-6">
-          <SectionCards cards={businessCards} />
+    <>
+      <SiteHeader
+        rightActions={
+          <>
+            <Button className="bg-blue-600 hover:bg-blue-800 text-white">
+              <PlusIcon />
+              Add Business
+            </Button>
+          </>
+        }
+      />
+      <div className="space-y-6">
+        <SectionCards cards={businessCards} />
 
-          <div className="space-y-6">
-            {/* Recent Business Applications Section */}
-            <div className="rounded-lg border bg-card py-6 mb-6">
-              <div className="px-6 mb-4 space-y-1">
-                <h2 className="font-bold">All Businesses</h2>
-                <p>Manage and monitor all businesses on the platform</p>
-              </div>
-
-              {/* Tabs for filtering businesses */}
-              <Tabs
-                value={activeTab}
-                onValueChange={(value) =>
-                  setActiveTab(value as BusinessStatusTab)
-                }
-                className="px-6 w-full bg-transparent rounded-none"
-              >
-                <TabsList className="grid w-full max-w-full grid-cols-3 rounded-none p-0 bg-transparent border-b h-10">
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent h-10"
-                    value="all"
-                  >
-                    All Businesses
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent h-10"
-                    value="pending"
-                  >
-                    Pending Businesses
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent h-10"
-                    value="active"
-                  >
-                    Active Businesses
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="all" className="mt-0"></TabsContent>
-                <TabsContent value="pending" className="mt-0"></TabsContent>
-                <TabsContent value="active" className="mt-0"></TabsContent>
-              </Tabs>
-
-              {/* Search and Filter Section */}
-              <div className="px-6 mt-6 flex flex-col sm:flex-row gap-12 items-start sm:items-center justify-between">
-                <div className="w-full">
-                  <Search
-                    placeholder="Search business name, address, manager..."
-                    value={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    className="rounded-md"
-                  />
-                </div>
-
-                <div className="flex gap-2 items-center">
-                  {/* Status Filter Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="flex items-center gap-2 h-12"
-                      >
-                        <FilterIcon className="w-4 h-4" />
-                        All Status
-                        {selectedStatuses.length > 0 && (
-                          <Badge variant="secondary" className="ml-1">
-                            {selectedStatuses.length}
-                          </Badge>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      {statusOptions.map((status) => (
-                        <DropdownMenuCheckboxItem
-                          key={status.value}
-                          checked={selectedStatuses.includes(status.value)}
-                          onCheckedChange={() =>
-                            handleStatusFilterChange(status.value)
-                          }
-                        >
-                          {status.label}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Clear Filters Button */}
-                  {(selectedStatuses.length > 0 || searchQuery) && (
-                    <Button
-                      variant="ghost"
-                      onClick={clearAllFilters}
-                      className="text-sm"
-                    >
-                      Clear Filters
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              {/* Results Count */}
-              <div className="px-6 mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {filteredBusinesses.length} of {businessData.length}{" "}
-                  businesses
-                  {(selectedStatuses.length > 0 || searchQuery) &&
-                    " (filtered)"}
-                </p>
-              </div>
-
-              <DataTable<Business>
-                data={filteredBusinesses}
-                fields={businessFields}
-                actions={businessActions}
-                enableSelection={true}
-                enablePagination={true}
-                pageSize={5}
-                onRowClick={(business) => {
-                  console.log("Row clicked:", business);
-                }}
-              />
+        <div className="space-y-6">
+          {/* Recent Business Applications Section */}
+          <div className="rounded-lg border bg-card py-6 mb-6">
+            <div className="px-6 mb-4 space-y-1">
+              <h2 className="font-bold">All Businesses</h2>
+              <p>Manage and monitor all businesses on the platform</p>
             </div>
+
+            {/* Tabs for filtering businesses */}
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) =>
+                setActiveTab(value as BusinessStatusTab)
+              }
+              className="px-6 w-full bg-transparent rounded-none"
+            >
+              <TabsList className="grid w-full max-w-full grid-cols-3 rounded-none p-0 bg-transparent border-b">
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="all"
+                >
+                  All Businesses
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="pending"
+                >
+                  Pending Businesses
+                </TabsTrigger>
+                <TabsTrigger
+                  className="bg-transparent border-0 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none data-[state=active]:dark:border-blue-600 data-[state=active]:dark:text-blue-600 data-[state=active]:dark:bg-transparent"
+                  value="active"
+                >
+                  Active Businesses
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="all" className="mt-0"></TabsContent>
+              <TabsContent value="pending" className="mt-0"></TabsContent>
+              <TabsContent value="active" className="mt-0"></TabsContent>
+            </Tabs>
+
+            {/* Search and Filter Section */}
+            <div className="px-6 mt-6 flex flex-col sm:flex-row gap-12 items-start sm:items-center justify-between">
+              <div className="w-full">
+                <Search
+                  placeholder="Search business name, address, manager..."
+                  value={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  className="rounded-md"
+                />
+              </div>
+
+              <div className="flex gap-2 items-center">
+                {/* Status Filter Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2 h-12"
+                    >
+                      <FilterIcon className="w-4 h-4" />
+                      All Status
+                      {selectedStatuses.length > 0 && (
+                        <Badge variant="secondary" className="ml-1">
+                          {selectedStatuses.length}
+                        </Badge>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {statusOptions.map((status) => (
+                      <DropdownMenuCheckboxItem
+                        key={status.value}
+                        checked={selectedStatuses.includes(status.value)}
+                        onCheckedChange={() =>
+                          handleStatusFilterChange(status.value)
+                        }
+                      >
+                        {status.label}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Clear Filters Button */}
+                {(selectedStatuses.length > 0 || searchQuery) && (
+                  <Button
+                    variant="ghost"
+                    onClick={clearAllFilters}
+                    className="text-sm"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Results Count */}
+            <div className="px-6 mt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredBusinesses.length} of {businessData.length}{" "}
+                businesses
+                {(selectedStatuses.length > 0 || searchQuery) && " (filtered)"}
+              </p>
+            </div>
+
+            <DataTable<Business>
+              data={filteredBusinesses}
+              fields={businessFields}
+              actions={businessActions}
+              enableSelection={true}
+              enablePagination={true}
+              pageSize={5}
+              onRowClick={(business) => {
+                console.log("Row clicked:", business);
+              }}
+            />
           </div>
         </div>
-      </main>
+      </div>
 
       <BusinessStatusDialog
         business={selectedBusiness}
@@ -504,6 +511,6 @@ export function BusinessesPage() {
         onClose={() => setIsDeleteDialogOpen(false)}
         onDelete={handleDeleteBusiness}
       />
-    </div>
+    </>
   );
 }

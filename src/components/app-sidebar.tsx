@@ -27,17 +27,12 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { NavHeader } from "./nav-header";
-import dashboardLogo from "@/assets/images/favicon.png";
 
 const data = {
-  navHeader: [
-    {
-      title: "KAMPALA NIGHTS",
-      logo: dashboardLogo,
-    },
-  ],
   navMain: [
     {
       title: "Dashboard",
@@ -93,7 +88,7 @@ const data = {
   navUser: [
     {
       title: "Sign Out",
-      url: "/login",
+      url: "#",
       icon: LogOut,
     },
   ],
@@ -181,12 +176,22 @@ const data = {
   ],
 };
 
-export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" {...props} className="p-0">
+    <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-              <NavHeader items={data.navHeader} />
-            </SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5 [&_span]:text-white hover:[&_span]:text-white hover:border-0 hover:bg-transparent"
+            >
+              {/* <img src="" alt="" className="h-6 w-6" /> */}
+              <span className="text-base font-semibold">Logo</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>

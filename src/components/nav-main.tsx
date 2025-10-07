@@ -51,7 +51,7 @@ export function NavMain({
                 <Link to={item.url}>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    className="h-11 [&_span]:text-white [&_svg]:text-white hover:[&_span]:text-white hover:[&_svg]:text-white data-[active=true]:[&_span]:text-white data-[active=true]:[&_svg]:text-white rounded-none"
+                    className="h-11 [&_span]:text-white [&_svg]:text-white hover:[&_span]:text-white hover:[&_svg]:text-white data-[active=true]:[&_span]:text-white data-[active=true]:[&_svg]:text-white"
                     isActive={isActive}
                   >
                     {item.icon && <item.icon />}

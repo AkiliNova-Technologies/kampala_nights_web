@@ -24,6 +24,7 @@ import {
   EditIcon,
   TrashIcon,
   MoreVerticalIcon,
+  Loader2Icon, // Add this import for the loader icon
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,7 @@ export interface TableAction<TData extends TableData> {
   label?: string;
   icon?: React.ReactNode;
   onClick: (row: TData) => void;
+  disabled?: (row: TData) => boolean;
 }
 
 // Props for the dynamic table
@@ -84,6 +86,7 @@ interface DataTableProps<TData extends TableData> {
   data: TData[];
   fields: TableField<TData>[];
   actions?: TableAction<TData>[];
+  loading?: boolean;
   enableSelection?: boolean;
   enablePagination?: boolean;
   pageSize?: number;
@@ -147,6 +150,7 @@ function DataTable<TData extends TableData>({
   data,
   fields,
   actions = [],
+  loading = false, // Default to false
   enableSelection = true,
   enablePagination = true,
   pageSize = 10,
@@ -238,6 +242,9 @@ function DataTable<TData extends TableData>({
                 onClick={() => action.onClick(row.original)}
                 title={action.label || action.type}
                 className="size-8 hover:bg-muted text-[#8C8C8C]"
+                disabled={
+                  action.disabled ? action.disabled(row.original) : false
+                }
               >
                 {action.icon ||
                   defaultIcons[action.type as keyof typeof defaultIcons] || (
@@ -349,7 +356,19 @@ function DataTable<TData extends TableData>({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {loading ? (
+                // Loading state - single row with centered loader
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    <div className="flex items-center justify-center">
+                      <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
@@ -383,7 +402,7 @@ function DataTable<TData extends TableData>({
           </Table>
         </div>
 
-        {enablePagination && (
+        {enablePagination && !loading && (
           <div className="flex items-center justify-between px-4">
             <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}

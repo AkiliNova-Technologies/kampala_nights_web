@@ -18,106 +18,83 @@ import {
 import { Search } from "@/components/ui/search";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BusinessStatusDialog } from "@/components/update-business-status";
-import type { Business } from "@/types/business";
+import { useReduxBusiness } from "@/hooks/useReduxBusiness";
+import type { BusinessUser } from "@/types/business"; // Update import
 import {
   EyeIcon,
   FilterIcon,
   PenIcon,
   TrashIcon,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+// FIX 1: Update types to match your Redux slice
 type BusinessStatusTab = "all" | "pending" | "active";
 
+// FIX 2: Create a mapped type that matches your UI needs
+type UIBusiness = {
+  id: string;
+  business: string; // companyName
+  owner: string; // firstName + lastName
+  registrationDate: string; // You might need to calculate this
+  status: "pending" | "approved" | "suspended" | "cancelled"; // Map from isVerified/isActive
+  address: string;
+  image?: string;
+  originalData: BusinessUser; // Keep original data for actions
+};
+
 export function BusinessesPage() {
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
-    null
-  );
+  const [selectedBusiness, setSelectedBusiness] = useState<UIBusiness | null>(null);
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<BusinessStatusTab>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatuses, setSelectedStatuses] = useState<
-    Business["status"][]
-  >([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<UIBusiness["status"][]>([]);
 
-  const [businessData, setBusinessData] = useState<Business[]>([
-    {
-      id: 1,
-      business: "Nightlife Central",
-      owner: "Nicholas Patrick",
-      registrationDate: "4 days ago",
-      status: "pending",
-      address: "Kololo",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 2,
-      business: "Illusion",
-      owner: "Olivia Smith",
-      registrationDate: "Sep 12, 2025",
-      status: "approved",
-      address: "Nakasero",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 3,
-      business: "Cat Walk",
-      owner: "Mike Wilson",
-      registrationDate: "Sep 12, 2025",
-      status: "approved",
-      address: "Kabalagala",
-    },
-    {
-      id: 4,
-      business: "Sky Club Kampala",
-      owner: "Lisa Chen",
-      registrationDate: "Aug 2, 2025",
-      status: "suspended",
-      address: "Industrial Area",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 5,
-      business: "Elite Events Co",
-      owner: "Eve Nalugya",
-      registrationDate: "Aug 12, 2025",
-      status: "pending",
-      address: "Bugolobi",
-    },
-    {
-      id: 6,
-      business: "Sky Lounge Kololo",
-      owner: "Sarah Johnson",
-      registrationDate: "Sep 10, 2025",
-      status: "pending",
-      address: "Kololo Heights",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 7,
-      business: "Bassline Bukoto",
-      owner: "David Brown",
-      registrationDate: "Sep 8, 2025",
-      status: "approved",
-      address: "Bukoto Street",
-    },
-    {
-      id: 8,
-      business: "Velvet Room Muyenga",
-      owner: "Jennifer Lee",
-      registrationDate: "Sep 5, 2025",
-      status: "pending",
-      address: "Muyenga Tank Hill",
-      image: "/api/placeholder/40/40",
-    },
-  ]);
+  // FIX 3: Use the Redux hook and fetch data
+  const { businesses: businessData, loading, fetchBusinesses } = useReduxBusiness();
+
+  useEffect(() => {
+    // Fetch businesses when component mounts
+    fetchBusinesses({ page: 1, limit: 50 }); 
+  }, [fetchBusinesses]);
 
   const navigate = useNavigate();
 
+  // FIX 4: Map API data to UI format
+  const mappedBusinesses: UIBusiness[] = useMemo(() => {
+    return businessData.map((business): UIBusiness => {
+      // Determine status based on isVerified and isActive
+      let status: UIBusiness["status"] = "pending";
+      if (business.isVerified && business.isActive) {
+        status = "approved";
+      } else if (!business.isActive) {
+        status = "suspended";
+      } else if (!business.isVerified) {
+        status = "pending";
+      }
+
+      // Format registration date (using verifiedAt or fallback)
+      const registrationDate = business.businessAccount.verifiedAt 
+        ? new Date(business.businessAccount.verifiedAt).toLocaleDateString()
+        : "Not verified";
+
+      return {
+        id: business.id,
+        business: business.businessAccount.companyName,
+        owner: `${business.firstName} ${business.lastName}`,
+        registrationDate,
+        status,
+        address: business.businessAccount.address,
+        image: undefined, // You can add image if available
+        originalData: business, // Keep original data for API calls
+      };
+    });
+  }, [businessData]);
+
   // Available status options for filter
-  const statusOptions: { value: Business["status"]; label: string }[] = [
+  const statusOptions: { value: UIBusiness["status"]; label: string }[] = [
     { value: "pending", label: "Pending" },
     { value: "approved", label: "Approved" },
     { value: "suspended", label: "Suspended" },
@@ -126,7 +103,7 @@ export function BusinessesPage() {
 
   // Filter businesses based on active tab, search query, and selected statuses
   const filteredBusinesses = useMemo(() => {
-    let filtered = businessData;
+    let filtered = mappedBusinesses;
 
     // First apply tab filter
     switch (activeTab) {
@@ -156,19 +133,16 @@ export function BusinessesPage() {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(
         (business) =>
-          // Search through business name, address, owner (manager), and email
           business.business.toLowerCase().includes(query) ||
           business.address?.toLowerCase().includes(query) ||
-          business.owner.toLowerCase().includes(query) ||
-          // You can add more searchable fields here
-          false
+          business.owner.toLowerCase().includes(query)
       );
     }
 
     return filtered;
-  }, [businessData, activeTab, selectedStatuses, searchQuery]);
+  }, [mappedBusinesses, activeTab, selectedStatuses, searchQuery]);
 
-  const handleStatusFilterChange = (status: Business["status"]) => {
+  const handleStatusFilterChange = (status: UIBusiness["status"]) => {
     setSelectedStatuses((prev) =>
       prev.includes(status)
         ? prev.filter((s) => s !== status)
@@ -181,10 +155,11 @@ export function BusinessesPage() {
     setSearchQuery("");
   };
 
+  // FIX 5: Update card data calculation
   const businessCards: CardData[] = [
     {
       title: "Total Businesses",
-      value: businessData.length.toString(),
+      value: mappedBusinesses.length.toString(),
       change: {
         value: "5%",
         trend: "up",
@@ -193,7 +168,7 @@ export function BusinessesPage() {
     },
     {
       title: "Active Businesses",
-      value: businessData
+      value: mappedBusinesses
         .filter((b) => b.status === "approved")
         .length.toString(),
       change: {
@@ -204,7 +179,7 @@ export function BusinessesPage() {
     },
     {
       title: "Pending Applications",
-      value: businessData
+      value: mappedBusinesses
         .filter((b) => b.status === "pending")
         .length.toString(),
       change: {
@@ -232,38 +207,44 @@ export function BusinessesPage() {
       .slice(0, 2);
   };
 
+  // FIX 6: Update handlers to work with actual API data
   const handleStatusUpdate = (
-    businessId: number,
-    newStatus: Business["status"]
+    businessId: string,
+    newStatus: UIBusiness["status"]
   ) => {
-    setBusinessData((prevData) =>
-      prevData.map((business) =>
-        business.id === businessId
-          ? { ...business, status: newStatus }
-          : business
-      )
-    );
-    console.log(`Updated business ${businessId} to status: ${newStatus}`);
+    // Find the original business data
+    const originalBusiness = mappedBusinesses.find(b => b.id === businessId)?.originalData;
+    
+    if (originalBusiness) {
+      // Map UI status back to API fields
+      const updates = {
+        isVerified: newStatus === "approved",
+        isActive: newStatus !== "suspended",
+      };
+
+      // TODO: Call your updateBusiness thunk here
+      // updateBusiness({ id: businessId, businessData: updates });
+      console.log(`Updated business ${businessId} to status: ${newStatus}`, updates);
+    }
   };
 
-  const handleDeleteBusiness = (businessId: number) => {
-    setBusinessData((prevData) =>
-      prevData.filter((business) => business.id !== businessId)
-    );
+  const handleDeleteBusiness = (businessId: string) => {
+    // TODO: Implement actual delete API call
     console.log(`Deleted business: ${businessId}`);
   };
 
-  const handleEditClick = (business: Business) => {
+  const handleEditClick = (business: UIBusiness) => {
     setSelectedBusiness(business);
     setIsStatusDialogOpen(true);
   };
 
-  const handleDeleteClick = (business: Business) => {
+  const handleDeleteClick = (business: UIBusiness) => {
     setSelectedBusiness(business);
     setIsDeleteDialogOpen(true);
   };
 
-  const businessFields: TableField<Business>[] = [
+  // FIX 7: Update table fields to use UIBusiness type
+  const businessFields: TableField<UIBusiness>[] = [
     {
       key: "business",
       header: "Business",
@@ -336,7 +317,7 @@ export function BusinessesPage() {
     },
   ];
 
-  const businessActions: TableAction<Business>[] = [
+  const businessActions: TableAction<UIBusiness>[] = [
     {
       type: "view",
       label: "View Details",
@@ -359,6 +340,7 @@ export function BusinessesPage() {
       onClick: handleDeleteClick,
     },
   ];
+
 
   return (
     <div className="min-h-screen">
@@ -416,7 +398,7 @@ export function BusinessesPage() {
                     placeholder="Search business name, address, manager..."
                     value={searchQuery}
                     onSearchChange={setSearchQuery}
-                    className="rounded-md"
+                    className="rounded-full"
                   />
                 </div>
 
@@ -468,20 +450,21 @@ export function BusinessesPage() {
               {/* Results Count */}
               <div className="px-6 mt-4">
                 <p className="text-sm text-muted-foreground">
-                  Showing {filteredBusinesses.length} of {businessData.length}{" "}
+                  Showing {filteredBusinesses.length} of {mappedBusinesses.length}{" "}
                   businesses
                   {(selectedStatuses.length > 0 || searchQuery) &&
                     " (filtered)"}
                 </p>
               </div>
 
-              <DataTable<Business>
+              <DataTable<UIBusiness>
                 data={filteredBusinesses}
                 fields={businessFields}
                 actions={businessActions}
                 enableSelection={true}
                 enablePagination={true}
                 pageSize={5}
+                loading={loading}
                 onRowClick={(business) => {
                   console.log("Row clicked:", business);
                 }}

@@ -7,6 +7,7 @@ import { Bell, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Search, type SearchResult } from "./ui/search";
 import { useState, type ReactNode } from "react";
+import { useReduxAuth } from "@/hooks/UseReduxAuth";
 
 interface SiteHeaderProps {
   rightActions?: ReactNode;
@@ -18,6 +19,8 @@ export function SiteHeader({ rightActions }: SiteHeaderProps) {
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { user } = useReduxAuth();
 
   const getPageTitle = (pathname: string) => {
     const pathWithoutAdmin = pathname.replace(/^\/admin\/?/, "");
@@ -82,6 +85,31 @@ export function SiteHeader({ rightActions }: SiteHeaderProps) {
   const handleResultSelect = (result: SearchResult) => {
     // Navigate to the result URL
     window.location.href = result.url;
+  };
+
+  const getInitials = (): string => {
+    // Use first and last name initials if available
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName.charAt(0).toUpperCase()}${user.lastName.charAt(0).toUpperCase()}`;
+    }
+    
+    // Fallback to first name only
+    if (user?.firstName) {
+      return user.firstName.charAt(0).toUpperCase();
+    }
+    
+    // Fallback to last name only
+    if (user?.lastName) {
+      return user.lastName.charAt(0).toUpperCase();
+    }
+    
+    // Fallback to username if no names available
+    if (user?.username) {
+      return user.username.charAt(0).toUpperCase();
+    }
+    
+    // Final fallback
+    return "U";
   };
 
   return (
@@ -151,10 +179,10 @@ export function SiteHeader({ rightActions }: SiteHeaderProps) {
           <div className="flex items-center gap-2 ml-2">
             <Avatar className="h-12 w-12">
               <AvatarImage src="/avatars/user.jpg" alt="User" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarFallback>{getInitials()}</AvatarFallback>
             </Avatar>
             <span className="text-sm font-medium hidden sm:block">
-              John Doe
+              {user?.username}
             </span>
           </div>
         </div>

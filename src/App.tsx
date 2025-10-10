@@ -45,6 +45,7 @@ import { GalleryPage } from "./pages/business/Gallery";
 import BusinessEventsPageLayout from "./layouts/BusinessEventsPageLayout";
 import { BusinessCreateEventPage } from "./pages/business/BusinessCreateEvent";
 import { BusinessEditEventPage } from "./pages/business/BusinessEditEvent";
+import { BusinessViewEventPage } from "./pages/business/BusinessViewEvent";
 
 function App() {
   return (
@@ -66,6 +67,7 @@ function App() {
               <Route index element={<BusinessEventsPage />} />
               <Route path="create-event" element={<BusinessCreateEventPage />} />
               <Route path="edit-event" element={<BusinessEditEventPage />} />
+              <Route path="view-event" element={<BusinessViewEventPage />} />
             </Route>
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="reservations" element={<ReservationsPage />} />

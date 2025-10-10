@@ -503,7 +503,7 @@ export function EventsPage() {
                     placeholder="Search events, businesses, locations..."
                     value={searchQuery}
                     onSearchChange={setSearchQuery}
-                    className="rounded-md"
+                    className="rounded-full"
                   />
                 </div>
 

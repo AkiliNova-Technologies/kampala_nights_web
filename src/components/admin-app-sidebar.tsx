@@ -2,20 +2,12 @@ import * as React from "react";
 import {
   Building2,
   CalendarDays,
-  CameraIcon,
-  ClipboardListIcon,
-  DatabaseIcon,
-  FileCodeIcon,
-  FileIcon,
-  FileTextIcon,
   Flame,
-  HelpCircleIcon,
   Landmark,
   LayoutDashboardIcon,
   LogOut,
   Megaphone,
   MessageCircleQuestionMark,
-  SearchIcon,
   SettingsIcon,
   Shield,
   Users,
@@ -30,8 +22,14 @@ import {
 } from "@/components/ui/sidebar";
 import { NavHeader } from "./nav-header";
 import dashboardLogo from "@/assets/images/favicon.png";
+import { useReduxAuth } from "@/hooks/UseReduxAuth";
 
-const data = {
+
+export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+  const {signout} = useReduxAuth();
+
+  const data = {
   navHeader: [
     {
       title: "KAMPALA NIGHTS",
@@ -93,95 +91,12 @@ const data = {
   navUser: [
     {
       title: "Sign Out",
-      url: "/login",
       icon: LogOut,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: CameraIcon,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: FileTextIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: FileCodeIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: HelpCircleIcon,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: SearchIcon,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: DatabaseIcon,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: ClipboardListIcon,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: FileIcon,
+      onPress: signout,
     },
   ],
 };
 
-export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props} className="p-0">
       <SidebarHeader>

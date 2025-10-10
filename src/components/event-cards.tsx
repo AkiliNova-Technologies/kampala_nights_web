@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 interface EventCardsProps {
   events: Event[];
@@ -221,6 +222,7 @@ const EventCard: React.FC<EventCardProps> = ({
   onEditEvent,
   onDeleteEvent,
 }) => {
+  const navigate = useNavigate();
   const isGrid = layout === "grid";
 
   return (
@@ -274,7 +276,12 @@ const EventCard: React.FC<EventCardProps> = ({
                 <EllipsisVertical className="size-5 text-white" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem
+                onClick={() => navigate(`/business/events/view-event`)}
+              >
+                View Event
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEditEvent?.(event)}>
                 Edit Event
               </DropdownMenuItem>
@@ -307,7 +314,7 @@ const EventCard: React.FC<EventCardProps> = ({
             <div className="flex flex-row gap-5 items-center">
               <Badge
                 className={cn(
-                  "px-2 py-1 rounded-sm text-xs font-medium whitespace-nowrap flex-shrink-0",
+                  "px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0",
                   event.price === "Free"
                     ? "bg-green-100 text-green-800"
                     : "bg-blue-100 text-blue-800"

@@ -22,7 +22,8 @@ interface BusinessStatusDialogProps {
   business: Business | null;
   isOpen: boolean;
   onClose: () => void;
-  onStatusUpdate: (businessId: number, newStatus: Business["status"]) => void;
+  onStatusUpdate: (businessId: string, newStatus: Business["status"]) => void;
+  loading?: boolean; 
 }
 
 export function BusinessStatusDialog({
@@ -30,6 +31,7 @@ export function BusinessStatusDialog({
   isOpen,
   onClose,
   onStatusUpdate,
+  loading,
 }: BusinessStatusDialogProps) {
   const [selectedStatus, setSelectedStatus] =
     useState<Business["status"]>("pending");
@@ -144,10 +146,28 @@ export function BusinessStatusDialog({
 
         <DialogFooter>
           <div className="flex-row flex justify-between w-full">
-            <Button variant="outline" onClick={onClose} className="h-12 w-45">
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              className="h-12 w-45"
+              disabled={loading}
+            >
               Cancel
             </Button>
-            <Button onClick={handleStatusUpdate} className="h-12 w-45 bg-blue-800 hover:bg-blue-800/80 text-white">Update Status</Button>
+            <Button 
+              onClick={handleStatusUpdate} 
+              className="h-12 w-45 bg-blue-800 hover:bg-blue-800/80 text-white"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Updating...
+                </>
+              ) : (
+                "Update Status"
+              )}
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>

@@ -16,7 +16,7 @@ interface DeleteBusinessDialogProps {
   business: Business | null;
   isOpen: boolean;
   onClose: () => void;
-  onDelete: (businessId: number) => void;
+  onDelete: (businessId: string) => void;
 }
 
 export function DeleteBusinessDialog({

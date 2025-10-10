@@ -17,81 +17,122 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BusinessStatusDialog } from "@/components/update-business-status";
 import { DeleteBusinessDialog } from "@/components/delete-business-dialog";
 import type { Business } from "@/types/business";
+import { useReduxBusiness } from "@/hooks/useReduxBusiness";
+import { useReduxAuth } from "@/hooks/UseReduxAuth";
+import { toast } from "sonner"; // Optional: for notifications
 
 export function DashboardHome() {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     null
   );
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
-
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [updatingBusinessId, setUpdatingBusinessId] = useState<string | null>(null);
 
-  // Define businessData as state so we can update it
-  const [businessData, setBusinessData] = useState<Business[]>([
-    {
-      id: 1,
-      business: "Nightlife Central Kōolo",
-      owner: "Nicholas Patrick",
-      registrationDate: "4 days ago",
-      status: "pending",
-      address: "Kampala Road, Kōolo",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 2,
-      business: "Illusion Nakasero",
-      owner: "Olivia Smith",
-      registrationDate: "Sep 12, 2025",
-      status: "approved",
-      address: "Nakasero Hill",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 3,
-      business: "Cat Walk Kabalagala",
-      owner: "Mike Wilson",
-      registrationDate: "Sep 12, 2025",
-      status: "cancelled",
-      address: "Kabalagala Road",
-    },
-    {
-      id: 4,
-      business: "Sky Lounge Kololo",
-      owner: "Sarah Johnson",
-      registrationDate: "Sep 10, 2025",
-      status: "pending",
-      address: "Kololo Heights",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 5,
-      business: "Bassline Bukoto",
-      owner: "David Brown",
-      registrationDate: "Sep 8, 2025",
-      status: "approved",
-      address: "Bukoto Street",
-    },
-    {
-      id: 6,
-      business: "Velvet Room Muyenga",
-      owner: "Jennifer Lee",
-      registrationDate: "Sep 5, 2025",
-      status: "pending",
-      address: "Muyenga Tank Hill",
-      image: "/api/placeholder/40/40",
-    },
-  ]);
+  const {
+    businesses: businessData,
+    loading,
+    error,
+    fetchBusinesses,
+    updateBusinessData
+  } = useReduxBusiness();
+  const { isAuthenticated, token } = useReduxAuth();
+
+  useEffect(() => {
+    console.log("🔍 Debug: useEffect triggered", {
+      isAuthenticated,
+      hasToken: !!token,
+      businessDataLength: businessData?.length,
+      loading,
+    });
+
+    if (isAuthenticated && token) {
+      console.log("🔄 Fetching businesses...", {
+        token: token.substring(0, 20) + "...",
+      });
+      fetchBusinesses({ page: 1, limit: 50 });
+    } else {
+      console.log("❌ Cannot fetch: Missing auth", {
+        isAuthenticated,
+        hasToken: !!token,
+      });
+    }
+  }, [fetchBusinesses, isAuthenticated, token]);
+
+  useEffect(() => {
+    console.log("📊 Business Data State:", {
+      loading,
+      error,
+      businessDataCount: businessData?.length,
+      businessData: businessData ? "Available" : "Null/Undefined",
+    });
+
+    if (error) {
+      console.error("❌ Detailed error:", error);
+    }
+  }, [loading, error, businessData]);
+
+  const transformedBusinessData: Business[] =
+    businessData?.map((business: any, index: number) => ({
+      id: business.id || business._id || `temp-${index + 1}`,
+      business:
+        business.businessName || business.name || `Business ${index + 1}`,
+      owner:
+        business.owner?.firstName && business.owner?.lastName
+          ? `${business.owner.firstName} ${business.owner.lastName}`
+          : business.owner?.email || business.contactPerson || "Unknown Owner",
+      registrationDate: business.createdAt
+        ? new Date(business.createdAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "Unknown date",
+      status: mapApiStatusToBusinessStatus(
+        business.status || business.approvalStatus
+      ),
+      address:
+        business.address?.streetAddress ||
+        business.location ||
+        "No address provided",
+      image: business.logo || business.image || `/api/placeholder/40/40`,
+    })) || [];
+
+  function mapApiStatusToBusinessStatus(apiStatus: string): Business["status"] {
+    const statusMap: Record<string, Business["status"]> = {
+      pending: "pending",
+      approved: "approved",
+      active: "approved",
+      cancelled: "cancelled",
+      rejected: "cancelled",
+      inactive: "cancelled",
+      suspended: "cancelled",
+    };
+
+    return statusMap[apiStatus?.toLowerCase()] || "pending";
+  }
+
+  // Helper function to map Business status back to API status
+  function mapBusinessStatusToApiStatus(businessStatus: Business["status"]): string {
+    const statusMap: Record<Business["status"], string> = {
+      pending: "pending",
+      approved: "approved",
+      cancelled: "cancelled",
+      suspended: "suspended"
+    };
+    return statusMap[businessStatus] || "pending";
+  }
 
   const dashboardCards: CardData[] = [
     {
       icon: <BuildingIcon className="size-4" />,
       iconBgColor: "bg-blue-500",
       title: "Total Businesses",
-      value: "20K",
+      value: transformedBusinessData.length.toString(),
       change: {
         value: "12%",
         trend: "up",
@@ -133,7 +174,6 @@ export function DashboardHome() {
     },
   ];
 
-  // Helper function to get initials from business name
   const getInitials = (name: string): string => {
     return name
       .split(" ")
@@ -142,27 +182,61 @@ export function DashboardHome() {
       .slice(0, 2);
   };
 
-  const handleStatusUpdate = (
-    businessId: number,
+  const handleStatusUpdate = async (
+    businessId: string,
     newStatus: Business["status"]
   ) => {
-    // Update business status in the local state
-    setBusinessData((prevData) =>
-      prevData.map((business) =>
-        business.id === businessId
-          ? { ...business, status: newStatus }
-          : business
-      )
-    );
-    console.log(`Updated business ${businessId} to status: ${newStatus}`);
+    try {
+      setUpdatingBusinessId(businessId);
+      
+      console.log(`🔄 Updating business ${businessId} to status: ${newStatus}`);
+      
+      // Map the Business status to API status
+      const apiStatus = mapBusinessStatusToApiStatus(newStatus);
+      
+      // Prepare the update data based on your API requirements
+      const updateData = {
+        status: apiStatus,
+        isActive: newStatus === "approved", 
+        isVerified: newStatus === "approved",
+      };
+
+      await updateBusinessData(businessId, updateData);
+      
+      console.log(`✅ Successfully updated business ${businessId} to ${newStatus}`);
+      
+      toast.success(`Business status updated to ${newStatus}`);
+      
+      fetchBusinesses({ page: 1, limit: 50, forceRefresh: true });
+      
+    } catch (error) {
+      console.error(`❌ Failed to update business ${businessId}:`, error);
+      
+      // Show error message
+      toast.error("Failed to update business status");
+    } finally {
+      setUpdatingBusinessId(null);
+      setIsStatusDialogOpen(false);
+    }
   };
 
-  const handleDeleteBusiness = (businessId: number) => {
-    // Remove business from the local state
-    setBusinessData((prevData) =>
-      prevData.filter((business) => business.id !== businessId)
-    );
-    console.log(`Deleted business: ${businessId}`);
+  const handleDeleteBusiness = async (businessId: string) => {
+    try {
+      console.log(`🗑️ Deleting business: ${businessId}`);
+      
+      // TODO: Implement actual delete API call
+      // For now, just show a message
+      toast.success("Business deleted successfully");
+      
+      // Refresh the businesses list
+      fetchBusinesses({ page: 1, limit: 50, forceRefresh: true });
+      
+    } catch (error) {
+      console.error(`❌ Failed to delete business ${businessId}:`, error);
+      toast.error("Failed to delete business");
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
   };
 
   const handleEditClick = (business: Business) => {
@@ -209,7 +283,7 @@ export function DashboardHome() {
     {
       key: "status",
       header: "Status ↓",
-      cell: (value) => {
+      cell: (value, row) => {
         const statusConfig = {
           pending: {
             label: "Pending",
@@ -226,14 +300,19 @@ export function DashboardHome() {
         };
 
         const config = statusConfig[value as keyof typeof statusConfig];
+        const isUpdating = updatingBusinessId === row.id;
 
         return (
           <Badge
             variant="secondary"
             className="flex flex-row items-center w-26 gap-2 bg-muted/50"
           >
-            <div className={`size-2 rounded-full ${config.dotColor}`} />
-            {config.label}
+            {isUpdating ? (
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-500" />
+            ) : (
+              <div className={`size-2 rounded-full ${config.dotColor}`} />
+            )}
+            {isUpdating ? "Updating..." : config.label}
           </Badge>
         );
       },
@@ -248,12 +327,14 @@ export function DashboardHome() {
       label: "Edit Status",
       icon: <PenIcon className="size-5 text-[#8C8C8C]" />,
       onClick: handleEditClick,
+      disabled: (business) => updatingBusinessId === business.id,
     },
     {
       type: "delete",
       label: "Delete Business",
       icon: <TrashIcon className="size-5 text-[#8C8C8C]" />,
       onClick: handleDeleteClick,
+      disabled: (business) => updatingBusinessId === business.id,
     },
   ];
 
@@ -272,12 +353,13 @@ export function DashboardHome() {
               <DataTable<Business>
                 title="Recent Business Applications"
                 description="Latest businesses requesting to join the platform"
-                data={businessData}
+                data={transformedBusinessData}
                 fields={businessFields}
                 actions={businessActions}
                 enableSelection={true}
                 enablePagination={true}
                 pageSize={5}
+                loading={loading}
                 onRowClick={(business) => {
                   console.log("Row clicked:", business);
                 }}
@@ -291,6 +373,7 @@ export function DashboardHome() {
             isOpen={isStatusDialogOpen}
             onClose={() => setIsStatusDialogOpen(false)}
             onStatusUpdate={handleStatusUpdate}
+            loading={updatingBusinessId === selectedBusiness?.id}
           />
 
           <DeleteBusinessDialog

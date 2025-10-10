@@ -20,68 +20,71 @@ import {
 } from "@/components/ui/sidebar";
 import { NavHeader } from "./nav-header";
 import dashboardLogo from "@/assets/images/favicon.png";
-
-const data = {
-  navHeader: [
-    {
-      title: "KAMPALA NIGHTS",
-      logo: dashboardLogo,
-    },
-  ],
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/business/",
-      icon: LayoutDashboardIcon,
-    },
-    {
-      title: "Events",
-      url: "/business/events",
-      icon: PartyPopper,
-    },
-    {
-      title: "Calendar",
-      url: "/business/calendar",
-      icon: CalendarDays,
-    },
-    {
-      title: "Reservations",
-      url: "/business/reservations",
-      icon: Handshake,
-    },
-    {
-      title: "Invoices",
-      url: "/business/invoices",
-      icon: Wallet,
-    },
-    {
-      title: "Gallery",
-      url: "/business/gallery",
-      icon: ImageIcon,
-    },
-    {
-      title: "Promotions",
-      url: "/business/promotions",
-      icon: Megaphone,
-    },
-    {
-      title: "Settings",
-      url: "/business/settings",
-      icon: SettingsIcon,
-    },
-  ],
-  navUser: [
-    {
-      title: "Sign Out",
-      url: "/login",
-      icon: LogOut,
-    },
-  ],
-};
+import { useReduxAuth } from "@/hooks/UseReduxAuth";
 
 export function BusinessAppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const { signout } = useReduxAuth();
+
+  const data = {
+    navHeader: [
+      {
+        title: "KAMPALA NIGHTS",
+        logo: dashboardLogo,
+      },
+    ],
+    navMain: [
+      {
+        title: "Dashboard",
+        url: "/business/",
+        icon: LayoutDashboardIcon,
+      },
+      {
+        title: "Events",
+        url: "/business/events",
+        icon: PartyPopper,
+      },
+      {
+        title: "Calendar",
+        url: "/business/calendar",
+        icon: CalendarDays,
+      },
+      {
+        title: "Reservations",
+        url: "/business/reservations",
+        icon: Handshake,
+      },
+      {
+        title: "Invoices",
+        url: "/business/invoices",
+        icon: Wallet,
+      },
+      {
+        title: "Gallery",
+        url: "/business/gallery",
+        icon: ImageIcon,
+      },
+      {
+        title: "Promotions",
+        url: "/business/promotions",
+        icon: Megaphone,
+      },
+      {
+        title: "Settings",
+        url: "/business/settings",
+        icon: SettingsIcon,
+      },
+    ],
+    navUser: [
+      {
+        title: "Sign Out",
+        icon: LogOut,
+        onPress: signout,
+      },
+    ],
+  };
+
   return (
     <Sidebar collapsible="icon" {...props} className="p-0">
       <SidebarHeader>

@@ -15,26 +15,21 @@ export function NavMain({
     title: string;
     url: string;
     icon?: LucideIcon;
-    exactMatch?: boolean; // Optional: if you want exact matching for specific items
+    exactMatch?: boolean; 
   }[];
 }) {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Function to check if the current path matches the item URL
   const isActiveItem = (itemUrl: string, exactMatch?: boolean) => {
     if (exactMatch) {
       return currentPath === itemUrl;
     }
     
-    // For non-exact matches, check if current path starts with item URL
-    // This handles sub-routes like /events/123 being active for /events
     if (currentPath === itemUrl) {
       return true;
     }
     
-    // Check if current path starts with item URL and the next character is / or it's the end
-    // This prevents /event from matching /events
     return currentPath.startsWith(itemUrl + '/') || currentPath.startsWith(itemUrl + '?');
   };
 
@@ -51,7 +46,7 @@ export function NavMain({
                 <Link to={item.url}>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    className="h-11 [&_span]:text-white [&_svg]:text-white hover:[&_span]:text-white hover:[&_svg]:text-white data-[active=true]:[&_span]:text-white data-[active=true]:[&_svg]:text-white rounded-none"
+                    className="h-11 [&_span]:text-white [&_svg]:text-white hover:[&_span]:text-white hover:[&_svg]:text-white data-[active=true]:[&_span]:text-white data-[active=true]:[&_svg]:text-white rounded-none hover:border-0"
                     isActive={isActive}
                   >
                     {item.icon && <item.icon />}

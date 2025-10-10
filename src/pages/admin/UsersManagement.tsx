@@ -467,7 +467,7 @@ export function UsersManagementPage() {
                     placeholder="Search names, email, role, departments..."
                     value={searchQuery}
                     onSearchChange={setSearchQuery}
-                    className="rounded-md"
+                    className="rounded-full"
                   />
                 </div>
 

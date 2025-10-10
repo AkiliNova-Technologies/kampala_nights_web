@@ -225,7 +225,7 @@ export function BusinessEventsPage() {
 
   const handleDeleteConfirm = (eventId: string) => {
     // Remove the event from the eventsData
-    setEventsData(prev => prev.filter(event => event.id !== eventId));
+    setEventsData((prev) => prev.filter((event) => event.id !== eventId));
     setDeleteDialogOpen(false);
     setEventToDelete(null);
   };
@@ -233,7 +233,7 @@ export function BusinessEventsPage() {
   const handleEditEvent = (event: Event) => {
     // Navigate to edit page or open edit modal
     console.log("Edit event:", event.id);
-    navigate("/business/events/edit-event")
+    navigate("/business/events/edit-event");
     // router.push(`/events/edit/${event.id}`);
   };
 
@@ -241,7 +241,11 @@ export function BusinessEventsPage() {
     <div className="min-h-screen">
       <SiteHeader
         rightActions={
-          <Button variant="secondary" className="bg-[#5041D0] text-white">
+          <Button
+            variant="secondary"
+            className="bg-[#5041D0] hover:bg-[#5041D0]/90 text-white"
+            onClick={() => navigate("/business/events/create-event")}
+          >
             {" "}
             <Plus /> Create Event
           </Button>

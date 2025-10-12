@@ -18,11 +18,11 @@ import { DashboardHome } from "./pages/admin/DashboardHome";
 import { BusinessesPage } from "./pages/admin/Businesses";
 import { CampaignsPage } from "./pages/admin/Campaigns";
 import { EventsPage } from "./pages/admin/Events";
-import { HotAndColdPage } from "./pages/admin/HotAndCold";
+import { HotOrNotPage } from "./pages/admin/HotorNot";
 import { ModerationPage } from "./pages/admin/Moderation";
 import { RevenuePage } from "./pages/admin/Revenue";
 import { SettingsPage } from "./pages/admin/Settings";
-import { SupportPage } from "./pages/admin/Support";
+import { SupportPage } from "./pages/admin/Helpdesk";
 import { UsersManagementPage } from "./pages/admin/UsersManagement";
 import { BusinessProfilePage } from "./pages/admin/BusinessProfile";
 import BusinessPageLayout from "./layouts/BusinessPageLayout";
@@ -52,9 +52,6 @@ function App() {
     <>
       <Router>
         <Routes>
-          {/* <Route path="/" element={<Home />} /> */}
-          {/* <Route path="/about" element={<About />} /> */}
-          {/* <Route path="/contact" element={<Contact />} /> */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -85,13 +82,13 @@ function App() {
             <Route path="campaigns" element={<CampaignsPage />} />
             <Route path="events" element={<EventsPageLayout />}>
               <Route index element={<EventsPage />} />
-              <Route path="event-details" element={<EventDetailsPage />} />
+              <Route path=":id" element={<EventDetailsPage />} />
             </Route>
-            <Route path="hot-and-cold" element={<HotAndColdPage />} />
+            <Route path="hot-or-cold" element={<HotOrNotPage />} />
             <Route path="moderation" element={<ModerationPage />} />
             <Route path="revenue" element={<RevenuePage />} />
             <Route path="settings" element={<SettingsPage />} />
-            <Route path="support" element={<SupportPage />} />
+            <Route path="helpdesk" element={<SupportPage />} />
             <Route
               path="users-management"
               element={<UserManagementPageLayout />}

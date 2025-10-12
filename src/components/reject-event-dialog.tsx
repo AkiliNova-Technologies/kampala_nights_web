@@ -46,11 +46,11 @@ export function RejectEventDialog({
             Reject Event
           </DialogTitle>
           <DialogDescription>
-            Please provide a reason for rejecting "{eventName}". This will be shared with the business owner.
+            Please provide a reason for rejecting <span className="text-[#071437] font-medium dark:text-[#FFFFFF]">"{eventName}"</span>. This will be shared with the business owner.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-3 py-4">
           <div className="space-y-2">
             <h3 className="text-lg font-semibold">Rejection Reason</h3>
             <Textarea
@@ -59,17 +59,17 @@ export function RejectEventDialog({
               onChange={(e) => setRejectionReason(e.target.value)}
               className="min-h-[120px] resize-none"
             />
-            <p className="text-xs text-gray-500">
-              Provide clear and constructive feedback for the business owner.
-            </p>
+            
           </div>
         </div>
+            <hr className="border-border space-y-1"/>
+        
 
         <DialogFooter className="flex space-x-4">
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="flex-1"
+            className="h-11 flex-1"
           >
             Cancel
           </Button>
@@ -77,7 +77,7 @@ export function RejectEventDialog({
             variant="destructive"
             onClick={handleReject}
             disabled={!rejectionReason.trim()}
-            className="flex-1"
+            className="h-11 flex-1"
           >
             Reject Event
           </Button>

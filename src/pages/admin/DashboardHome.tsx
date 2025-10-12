@@ -31,14 +31,18 @@ export function DashboardHome() {
   );
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [updatingBusinessId, setUpdatingBusinessId] = useState<string | null>(null);
+  const [updatingBusinessId, setUpdatingBusinessId] = useState<string | null>(
+    null
+  );
+  const [hasFetchedInitialData, setHasFetchedInitialData] = useState(false);
 
   const {
     businesses: businessData,
     loading,
-    error,
     fetchBusinesses,
-    updateBusinessData
+    updateBusinessStatus,
+    hasData,
+    lastFetched,
   } = useReduxBusiness();
   const { isAuthenticated, token } = useReduxAuth();
 
@@ -48,33 +52,34 @@ export function DashboardHome() {
       hasToken: !!token,
       businessDataLength: businessData?.length,
       loading,
+      hasFetchedInitialData,
+      hasData,
+      lastFetched,
     });
 
-    if (isAuthenticated && token) {
-      console.log("🔄 Fetching businesses...", {
-        token: token.substring(0, 20) + "...",
-      });
+    // Only fetch if authenticated, has token, no data, and haven't fetched yet
+    if (
+      isAuthenticated &&
+      token &&
+      !hasData &&
+      !hasFetchedInitialData &&
+      !loading
+    ) {
+      console.log("🔄 Fetching businesses for DashboardHome...");
       fetchBusinesses({ page: 1, limit: 50 });
-    } else {
-      console.log("❌ Cannot fetch: Missing auth", {
-        isAuthenticated,
-        hasToken: !!token,
-      });
+      setHasFetchedInitialData(true);
     }
-  }, [fetchBusinesses, isAuthenticated, token]);
+  }, [
+    fetchBusinesses,
+    isAuthenticated,
+    token,
+    hasData,
+    hasFetchedInitialData,
+    loading,
+  ]);
 
-  useEffect(() => {
-    console.log("📊 Business Data State:", {
-      loading,
-      error,
-      businessDataCount: businessData?.length,
-      businessData: businessData ? "Available" : "Null/Undefined",
-    });
-
-    if (error) {
-      console.error("❌ Detailed error:", error);
-    }
-  }, [loading, error, businessData]);
+  // Only show loading when we have no data AND are loading
+  const showLoading = loading && !hasData;
 
   const transformedBusinessData: Business[] =
     businessData?.map((business: any, index: number) => ({
@@ -117,15 +122,17 @@ export function DashboardHome() {
   }
 
   // Helper function to map Business status back to API status
-  function mapBusinessStatusToApiStatus(businessStatus: Business["status"]): string {
-    const statusMap: Record<Business["status"], string> = {
-      pending: "pending",
-      approved: "approved",
-      cancelled: "cancelled",
-      suspended: "suspended"
-    };
-    return statusMap[businessStatus] || "pending";
-  }
+  // function mapBusinessStatusToApiStatus(
+  //   businessStatus: Business["status"]
+  // ): string {
+  //   const statusMap: Record<Business["status"], string> = {
+  //     pending: "pending",
+  //     approved: "approve",
+  //     cancelled: "reject",
+  //     suspended: "reject",
+  //   };
+  //   return statusMap[businessStatus] || "pending";
+  // }
 
   const dashboardCards: CardData[] = [
     {
@@ -134,8 +141,6 @@ export function DashboardHome() {
       title: "Total Businesses",
       value: transformedBusinessData.length.toString(),
       change: {
-        value: "12%",
-        trend: "up",
         description: "from last month",
       },
     },
@@ -143,10 +148,8 @@ export function DashboardHome() {
       icon: <CalendarIcon className="size-4" />,
       iconBgColor: "bg-purple-500",
       title: "Events This Month",
-      value: "35k",
+      value: "0",
       change: {
-        value: "23%",
-        trend: "up",
         description: "from last month",
       },
     },
@@ -154,10 +157,8 @@ export function DashboardHome() {
       icon: <DollarSignIcon className="size-4" />,
       iconBgColor: "bg-green-500",
       title: "Platform Revenue",
-      value: "$2.4M",
+      value: "0",
       change: {
-        value: "15%",
-        trend: "up",
         description: "from last month",
       },
     },
@@ -165,10 +166,8 @@ export function DashboardHome() {
       icon: <UsersIcon className="size-4" />,
       iconBgColor: "bg-orange-500",
       title: "Total Users",
-      value: "89,432",
+      value: "0",
       change: {
-        value: "5%",
-        trend: "up",
         description: "from last month",
       },
     },
@@ -181,38 +180,29 @@ export function DashboardHome() {
       .join("")
       .slice(0, 2);
   };
-
   const handleStatusUpdate = async (
     businessId: string,
     newStatus: Business["status"]
   ) => {
     try {
       setUpdatingBusinessId(businessId);
-      
-      console.log(`🔄 Updating business ${businessId} to status: ${newStatus}`);
-      
-      // Map the Business status to API status
-      const apiStatus = mapBusinessStatusToApiStatus(newStatus);
-      
-      // Prepare the update data based on your API requirements
-      const updateData = {
-        status: apiStatus,
-        isActive: newStatus === "approved", 
-        isVerified: newStatus === "approved",
-      };
 
-      await updateBusinessData(businessId, updateData);
-      
-      console.log(`✅ Successfully updated business ${businessId} to ${newStatus}`);
-      
-      toast.success(`Business status updated to ${newStatus}`);
-      
+      console.log(`🔄 Updating business ${businessId} to status: ${newStatus}`);
+
+      // Map the frontend status to backend action
+      const backendAction = newStatus === "approved" ? "approve" : "reject";
+      const notes = `Status changed to ${newStatus}`;
+
+      // Use the correct function - updateBusinessStatus
+      await updateBusinessStatus(businessId, backendAction, notes);
+
+      console.log(`✅ Successfully updated business ${businessId}`);
+
+      toast.success(`Business ${backendAction}d successfully`);
+
       fetchBusinesses({ page: 1, limit: 50, forceRefresh: true });
-      
     } catch (error) {
       console.error(`❌ Failed to update business ${businessId}:`, error);
-      
-      // Show error message
       toast.error("Failed to update business status");
     } finally {
       setUpdatingBusinessId(null);
@@ -223,14 +213,13 @@ export function DashboardHome() {
   const handleDeleteBusiness = async (businessId: string) => {
     try {
       console.log(`🗑️ Deleting business: ${businessId}`);
-      
+
       // TODO: Implement actual delete API call
       // For now, just show a message
       toast.success("Business deleted successfully");
-      
+
       // Refresh the businesses list
       fetchBusinesses({ page: 1, limit: 50, forceRefresh: true });
-      
     } catch (error) {
       console.error(`❌ Failed to delete business ${businessId}:`, error);
       toast.error("Failed to delete business");
@@ -359,7 +348,7 @@ export function DashboardHome() {
                 enableSelection={true}
                 enablePagination={true}
                 pageSize={5}
-                loading={loading}
+                loading={showLoading}
                 onRowClick={(business) => {
                   console.log("Row clicked:", business);
                 }}

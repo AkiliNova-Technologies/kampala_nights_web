@@ -73,43 +73,46 @@ const initialState: BusinessState = {
 
 // 🗂️ localStorage utility functions for business data
 const businessStorage = {
-  getCachedBusinesses: (): { data: BusinessListResponse; timestamp: number } | null => {
-    if (typeof window !== 'undefined') {
+  getCachedBusinesses: (): {
+    data: BusinessListResponse;
+    timestamp: number;
+  } | null => {
+    if (typeof window !== "undefined") {
       try {
-        const cached = localStorage.getItem('businesses_cache');
+        const cached = localStorage.getItem("businesses_cache");
         return cached ? JSON.parse(cached) : null;
       } catch (error) {
-        console.error('Error reading businesses cache:', error);
+        console.error("Error reading businesses cache:", error);
         return null;
       }
     }
     return null;
   },
-  
+
   setCachedBusinesses: (data: BusinessListResponse) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         const cacheData = {
           data,
           timestamp: Date.now(),
         };
-        localStorage.setItem('businesses_cache', JSON.stringify(cacheData));
+        localStorage.setItem("businesses_cache", JSON.stringify(cacheData));
       } catch (error) {
-        console.error('Error saving businesses cache:', error);
+        console.error("Error saving businesses cache:", error);
       }
     }
   },
-  
+
   clearCachedBusinesses: () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
-        localStorage.removeItem('businesses_cache');
+        localStorage.removeItem("businesses_cache");
       } catch (error) {
-        console.error('Error clearing businesses cache:', error);
+        console.error("Error clearing businesses cache:", error);
       }
     }
   },
-  
+
   // Check if cache is still valid (5 minutes)
   isCacheValid: (timestamp: number): boolean => {
     const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -121,7 +124,11 @@ const businessStorage = {
 export const getBusinesses = createAsyncThunk(
   "business/getBusinesses",
   async (
-    { page = 1, limit = 10, forceRefresh = false }: { page?: number; limit?: number; forceRefresh?: boolean } = {},
+    {
+      page = 1,
+      limit = 10,
+      forceRefresh = false,
+    }: { page?: number; limit?: number; forceRefresh?: boolean } = {},
     { rejectWithValue }
   ) => {
     try {
@@ -129,28 +136,28 @@ export const getBusinesses = createAsyncThunk(
       if (!forceRefresh) {
         const cached = businessStorage.getCachedBusinesses();
         if (cached && businessStorage.isCacheValid(cached.timestamp)) {
-          console.log('📦 Using cached businesses data');
+          console.log("📦 Using cached businesses data");
           return cached.data;
         }
       }
 
-      console.log('🌐 Fetching fresh businesses data from API');
+      console.log("🌐 Fetching fresh businesses data from API");
       const response = await api.get(
-        `/admin/users/business?page=${page}&limit=${limit}`
+        `/api/v1/admin/users/business?page=${page}&limit=${limit}`
       );
-      
+
       // Cache the successful response
       businessStorage.setCachedBusinesses(response.data);
-      
+
       return response.data;
     } catch (error: unknown) {
       // If API fails, try to use cache as fallback
       const cached = businessStorage.getCachedBusinesses();
       if (cached && businessStorage.isCacheValid(cached.timestamp)) {
-        console.log('🔄 API failed, using cached data as fallback');
+        console.log("🔄 API failed, using cached data as fallback");
         return cached.data;
       }
-      
+
       const err = error as {
         response?: { data?: { message?: string; error?: string } };
         message?: string;
@@ -170,7 +177,7 @@ export const getBusinessById = createAsyncThunk(
   "business/getBusinessById",
   async (businessId: string, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/business/${businessId}`);
+      const response = await api.get(`/api/v1/business/${businessId}`);
       return response.data;
     } catch (error: unknown) {
       const err = error as {
@@ -199,14 +206,14 @@ export const updateBusiness = createAsyncThunk(
   ) => {
     try {
       const response = await api.put(
-        `/admin/users/business/${id}/review`,
+        `/api/v1/admin/users/business/${id}/review`,
         businessData
       );
-      
+
       // Clear cache when business is updated to ensure fresh data next time
       businessStorage.clearCachedBusinesses();
-      console.log('🗑️ Cleared business cache due to update');
-      
+      console.log("🗑️ Cleared business cache due to update");
+
       return response.data;
     } catch (error: unknown) {
       const err = error as {
@@ -218,6 +225,40 @@ export const updateBusiness = createAsyncThunk(
         err?.response?.data?.error ||
         err?.message ||
         "Failed to update business";
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+// Add this new thunk for status updates
+export const updateBusinessStatus = createAsyncThunk(
+  "business/updateBusinessStatus",
+  async (
+    { id, action, notes }: { id: string; action: string; notes?: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await api.put(
+        // Use PATCH instead of PUT
+        `/api/v1/admin/users/business/${id}/review`,
+        { action, notes }
+      );
+
+      // Clear cache when business status is updated
+      businessStorage.clearCachedBusinesses();
+      console.log("🗑️ Cleared business cache due to status update");
+
+      return response.data;
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+        message?: string;
+      };
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to update business status";
       return rejectWithValue(errorMessage);
     }
   }
@@ -248,7 +289,7 @@ const businessSlice = createSlice({
           ...action.payload,
         };
       }
-      
+
       // Clear cache when local updates happen
       businessStorage.clearCachedBusinesses();
     },
@@ -281,7 +322,7 @@ const businessSlice = createSlice({
         };
         state.lastFetched = cached.timestamp;
         state.loading = false;
-        console.log('📦 Loaded businesses from cache');
+        console.log("📦 Loaded businesses from cache");
       }
     },
   },
@@ -305,12 +346,12 @@ const businessSlice = createSlice({
         };
         state.lastFetched = Date.now();
         state.error = null;
-        console.log('✅ Businesses loaded successfully');
+        console.log("✅ Businesses loaded successfully");
       })
       .addCase(getBusinesses.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        console.error('❌ Failed to load businesses:', action.payload);
+        console.error("❌ Failed to load businesses:", action.payload);
       })
       // Get Business by ID
       .addCase(getBusinessById.pending, (state) => {

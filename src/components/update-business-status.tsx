@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/select";
 import type { Business } from "@/types/business";
 
-
 interface BusinessStatusDialogProps {
   business: Business | null;
   isOpen: boolean;
@@ -26,6 +25,10 @@ interface BusinessStatusDialogProps {
   loading?: boolean; 
 }
 
+type BackendStatus = "pending" | "approve" | "reject";
+
+type FrontendStatus = Business["status"];
+
 export function BusinessStatusDialog({
   business,
   isOpen,
@@ -33,19 +36,40 @@ export function BusinessStatusDialog({
   onStatusUpdate,
   loading,
 }: BusinessStatusDialogProps) {
-  const [selectedStatus, setSelectedStatus] =
-    useState<Business["status"]>("pending");
+  const [selectedStatus, setSelectedStatus] = useState<BackendStatus>("approve");
 
-  // Reset selected status when business changes using useEffect
   useEffect(() => {
     if (business) {
-      setSelectedStatus(business.status);
+      const backendStatus = mapFrontendToBackendStatus(business.status);
+      setSelectedStatus(backendStatus);
     }
   }, [business]);
 
+  const mapFrontendToBackendStatus = (frontendStatus: FrontendStatus): BackendStatus => {
+    const statusMap: Record<FrontendStatus, BackendStatus> = {
+      pending: "approve", 
+      approved: "approve", 
+      cancelled: "reject", 
+      suspended: "reject",
+    };
+    return statusMap[frontendStatus] || "approve";
+  };
+
+  // Map backend status to frontend status
+  const mapBackendToFrontendStatus = (backendStatus: BackendStatus): FrontendStatus => {
+    const statusMap: Record<BackendStatus, FrontendStatus> = {
+      pending: "pending",
+      approve: "approved",
+      reject: "cancelled", // or "suspended" depending on your business logic
+    };
+    return statusMap[backendStatus];
+  };
+
   const handleStatusUpdate = () => {
     if (business) {
-      onStatusUpdate(business.id, selectedStatus);
+      // Convert backend status to frontend status before passing up
+      const frontendStatus = mapBackendToFrontendStatus(selectedStatus);
+      onStatusUpdate(business.id, frontendStatus);
       onClose();
     }
   };
@@ -53,15 +77,15 @@ export function BusinessStatusDialog({
   const statusConfig = {
     pending: {
       label: "Pending",
+      description: "This business is waiting approval to join platform"
     },
-    approved: {
-      label: "Approved",
+    approve: {
+      label: "Approve",
+      description: "Approve this business to join the platform"
     },
-    cancelled: {
-      label: "Cancelled",
-    },
-    suspended: {
-      label: "Suspended",
+    reject: {
+      label: "Reject",
+      description: "Reject this business application"
     },
   };
 
@@ -69,7 +93,7 @@ export function BusinessStatusDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="min-w-2xl">
         <DialogHeader>
           <DialogTitle>Business Details & Status Management</DialogTitle>
           <DialogDescription>
@@ -88,9 +112,9 @@ export function BusinessStatusDialog({
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">
-                Business Type
+                Current Status
               </label>
-              <p className="text-sm font-medium">Club</p>
+              <p className="text-sm font-medium capitalize">{business.status}</p>
             </div>
           </div>
 
@@ -114,15 +138,13 @@ export function BusinessStatusDialog({
           {/* Status Management */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-muted-foreground">
-              Status Management
+              Update Status
             </label>
             <Select
               value={selectedStatus}
-              onValueChange={(value: Business["status"]) =>
-                setSelectedStatus(value)
-              }
+              onValueChange={(value: BackendStatus) => setSelectedStatus(value)}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="min-h-11 w-full">
                 <SelectValue>
                   <div className="flex items-center gap-2">
                     {statusConfig[selectedStatus].label}
@@ -130,33 +152,42 @@ export function BusinessStatusDialog({
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {(["pending", "approved", "cancelled", "suspended"] as const).map(
-                  (status) => (
-                    <SelectItem key={status} value={status}>
-                      <div className="flex items-center gap-2">
+                {(["approve", "reject"] as const).map((status) => (
+                  <SelectItem key={status} value={status}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">
                         {statusConfig[status].label}
-                      </div>
-                    </SelectItem>
-                  )
-                )}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {statusConfig[status].description}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            
+            {/* Status change preview */}
+            <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
+              Changing from <span className="font-medium capitalize">{business.status}</span> to{" "}
+              <span className="font-medium">{mapBackendToFrontendStatus(selectedStatus)}</span>
+            </div>
           </div>
         </div>
 
         <DialogFooter>
-          <div className="flex-row flex justify-between w-full">
+          <div className="flex-row flex justify-between w-full gap-4">
             <Button 
               variant="outline" 
               onClick={onClose} 
-              className="h-12 w-45"
+              className="h-11 w-full flex-1"
               disabled={loading}
             >
               Cancel
             </Button>
             <Button 
               onClick={handleStatusUpdate} 
-              className="h-12 w-45 bg-blue-800 hover:bg-blue-800/80 text-white"
+              className="h-11 w-full flex-1 bg-[#5014D0] hover:bg-[#5014D0]/80 text-white"
               disabled={loading}
             >
               {loading ? (

@@ -19,8 +19,91 @@ import { Search } from "@/components/ui/search";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { EyeIcon, FilterIcon } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useReduxEvents } from "@/hooks/useReduxEvents";
+
+// Backend Event interface based on your API response
+export interface BackendEvent {
+  id: string;
+  venueId: string;
+  name: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  maxAttendees: number;
+  ticketPrice: number;
+  eventType: string;
+  backgroundImageUrl?: string;
+  coverImageUrl?: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  isApproved: boolean;
+  approvedAt?: string;
+  approvedBy?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  venue: {
+    id: string;
+    businessAccountId: string;
+    name: string;
+    description: string;
+    address: string;
+    type: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    businessAccount: {
+      id: string;
+      baseUserId: string;
+      companyName: string;
+      businessType: string;
+      taxId?: string;
+      phone: string;
+      address: string;
+      status: string;
+      isVerified: boolean;
+      verifiedAt?: string;
+      rejectionReason?: string;
+      profileCompleted: boolean;
+      latitude: number;
+      longitude: number;
+      amenities: string;
+      baseUser: {
+        email: string;
+        firstName: string;
+        lastName: string;
+      };
+    };
+  };
+  eventmedia: Array<{
+    id: string;
+    eventId: string;
+    type: "IMAGE" | "VIDEO";
+    position: number;
+    storageKey: string;
+    url: string;
+    width?: number;
+    height?: number;
+    durationSec?: number;
+    variants?: any;
+  }>;
+}
+
+// UI Event interface that extends the Backend event with additional UI properties
+interface UIEvent extends Omit<BackendEvent, "status"> {
+  // UI-specific status that matches your tab system
+  status: "active" | "pending" | "suspended" | "completed" | "cancelled";
+  // Additional UI fields
+  business: string;
+  businessImage?: string;
+  date: string;
+  time: string;
+  location: string;
+  vibeScore: number;
+  image?: string;
+  [key: string]: unknown;
+}
 
 type EventStatus =
   | "active"
@@ -30,166 +113,93 @@ type EventStatus =
   | "cancelled";
 type EventTab = "all" | "active" | "pending" | "suspended" | "past";
 
-interface Event {
-  id: number;
-  name: string;
-  business: string;
-  businessImage?: string;
-  date: string;
-  time: string;
-  location: string;
-  vibeScore: number;
-  status: EventStatus;
-  image?: string;
-  [key: string]: unknown;
-}
-
 export function EventsPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<EventTab>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<EventStatus[]>([]);
+  const [hasFetchedInitialData, setHasFetchedInitialData] = useState(false);
 
-  const [eventData] = useState<Event[]>([
-    {
-      id: 1,
-      name: "Friday Night Live",
-      business: "Nightlife Central",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 15, 2025",
-      time: "9:00 PM",
-      location: "Kololo",
-      vibeScore: 92,
-      status: "active",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 2,
-      name: "DJ Spin Master",
-      business: "Illusion",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 16, 2025",
-      time: "10:00 PM",
-      location: "Nakasero",
-      vibeScore: 88,
-      status: "active",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 3,
-      name: "Karaoke Night",
-      business: "Cat Walk",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 14, 2025",
-      time: "8:00 PM",
-      location: "Kabalagala",
-      vibeScore: 85,
-      status: "pending",
-    },
-    {
-      id: 4,
-      name: "VIP Lounge Party",
-      business: "Sky Club Kampala",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 10, 2025",
-      time: "11:00 PM",
-      location: "Industrial Area",
-      vibeScore: 95,
-      status: "completed",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 5,
-      name: "Summer Festival",
-      business: "Elite Events Co",
-      businessImage: "/api/placeholder/40/40",
-      date: "Aug 30, 2025",
-      time: "7:00 PM",
-      location: "Bugolobi",
-      vibeScore: 78,
-      status: "completed",
-    },
-    {
-      id: 6,
-      name: "Jazz Night",
-      business: "Sky Lounge Kololo",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 20, 2025",
-      time: "8:30 PM",
-      location: "Kololo Heights",
-      vibeScore: 90,
-      status: "active",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 7,
-      name: "Bass Revolution",
-      business: "Bassline Bukoto",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 18, 2025",
-      time: "10:30 PM",
-      location: "Bukoto Street",
-      vibeScore: 87,
-      status: "pending",
-    },
-    {
-      id: 8,
-      name: "Velvet Experience",
-      business: "Velvet Room Muyenga",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 12, 2025",
-      time: "9:30 PM",
-      location: "Muyenga Tank Hill",
-      vibeScore: 82,
-      status: "suspended",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 9,
-      name: "Reggae Night",
-      business: "Island Vibes",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 5, 2025",
-      time: "8:00 PM",
-      location: "Entebbe Road",
-      vibeScore: 89,
-      status: "completed",
-    },
-    {
-      id: 10,
-      name: "Electronic Dreams",
-      business: "Neon Club",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 25, 2025",
-      time: "11:00 PM",
-      location: "City Center",
-      vibeScore: 91,
-      status: "active",
-      image: "/api/placeholder/40/40",
-    },
-    {
-      id: 11,
-      name: "Wine Tasting",
-      business: "Vintage Cellar",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 22, 2025",
-      time: "6:00 PM",
-      location: "Garden City",
-      vibeScore: 84,
-      status: "pending",
-    },
-    {
-      id: 12,
-      name: "Comedy Night",
-      business: "Laugh Factory",
-      businessImage: "/api/placeholder/40/40",
-      date: "Sep 8, 2025",
-      time: "7:30 PM",
-      location: "Acacia Avenue",
-      vibeScore: 79,
-      status: "completed",
-    },
-  ]);
+  const {
+    events,
+    loading,
+    fetchEvents,
+    approveEvent,
+    rejectEvent,
+    deleteEvent,
+    refreshEvents,
+    hasData,
+  } = useReduxEvents();
+
+  useEffect(() => {
+    if (!hasData && !hasFetchedInitialData && !loading) {
+      console.log("🔄 Fetching events for EventsPage...");
+      fetchEvents({ page: 1, limit: 50 });
+      setHasFetchedInitialData(true);
+    }
+  }, [fetchEvents, hasData, hasFetchedInitialData, loading]);
+
+  // Map Backend event status to UI status
+  const mapEventStatus = (status: string, endDateTime: string): EventStatus => {
+    const eventEnd = new Date(endDateTime);
+    const now = new Date();
+    const isPastEvent = eventEnd < now;
+
+    switch (status.toUpperCase()) {
+      case "APPROVED":
+        return isPastEvent ? "completed" : "active";
+      case "PENDING":
+        return "pending";
+      case "REJECTED":
+        return "suspended";
+      case "CANCELLED":
+        return "cancelled";
+      default:
+        return "completed";
+    }
+  };
+
+  // Transform Backend events to match UI interface
+  const transformedEvents: UIEvent[] = useMemo(() => {
+    return events.map((event) => {
+      const finalStatus = mapEventStatus(event.status, event.endDateTime);
+
+      // Get the first image from eventmedia for the avatar
+      const firstImage = event.eventmedia?.find(
+        (media) => media.type === "IMAGE"
+      );
+      const imageUrl =
+        firstImage?.url ||
+        event.coverImageUrl ||
+        event.backgroundImageUrl ||
+        "/api/placeholder/40/40";
+
+      // Format date and time
+      const startDate = new Date(event.startDateTime);
+      const date = startDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const time = startDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      return {
+        ...event,
+        business: event.venue.businessAccount.companyName,
+        date,
+        time,
+        location: event.venue.address,
+        vibeScore: Math.floor(Math.random() * 30) + 70, // Random score for demo
+        status: finalStatus,
+        image: imageUrl,
+        businessImage: "/api/placeholder/40/40", // You might want to add business images to your backend
+      };
+    });
+  }, [events]);
 
   // Available status options for filter
   const statusOptions: { value: EventStatus; label: string }[] = [
@@ -202,7 +212,7 @@ export function EventsPage() {
 
   // Filter events based on active tab, search query, and selected statuses
   const filteredEvents = useMemo(() => {
-    let filtered = eventData;
+    let filtered = transformedEvents;
 
     // Apply tab filter
     switch (activeTab) {
@@ -238,12 +248,14 @@ export function EventsPage() {
         (event) =>
           event.name.toLowerCase().includes(query) ||
           event.business.toLowerCase().includes(query) ||
-          event.location.toLowerCase().includes(query)
+          event.location.toLowerCase().includes(query) ||
+          event.venue.name.toLowerCase().includes(query) ||
+          event.venue.businessAccount.companyName.toLowerCase().includes(query)
       );
     }
 
     return filtered;
-  }, [eventData, activeTab, selectedStatuses, searchQuery]);
+  }, [transformedEvents, activeTab, selectedStatuses, searchQuery]);
 
   const handleStatusFilterChange = (status: EventStatus) => {
     setSelectedStatuses((prev) =>
@@ -258,59 +270,101 @@ export function EventsPage() {
     setSearchQuery("");
   };
 
-  const eventCards: CardData[] = [
-    {
-      title: "Total Events",
-      value: eventData.length.toString(),
-      change: {
-        trend: "up",
-        value: "23%",
-        description: "from last month",
+  const handleRefresh = () => {
+    refreshEvents();
+    fetchEvents({ page: 1, limit: 20, forceRefresh: true });
+  };
+
+  const handleApproveEvent = async (eventId: string) => {
+    try {
+      await approveEvent(eventId);
+      // The events list will automatically refresh due to cache clearing
+    } catch (err) {
+      console.error("Failed to approve event:", err);
+    }
+  };
+
+  const handleRejectEvent = async (eventId: string) => {
+    const reason = prompt("Please enter rejection reason:");
+    if (reason) {
+      try {
+        await rejectEvent(eventId, reason);
+      } catch (err) {
+        console.error("Failed to reject event:", err);
+      }
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      try {
+        await deleteEvent(eventId);
+      } catch (err) {
+        console.error("Failed to delete event:", err);
+      }
+    }
+  };
+
+  // Calculate card statistics
+  const eventCards: CardData[] = useMemo(
+    () => [
+      {
+        title: "Total Events",
+        value: events.length.toString(),
+        change: {
+          trend: "up",
+          value: "23%",
+          description: "from last month",
+        },
       },
-    },
-    {
-      title: "Active Events",
-      value: eventData
-        .filter((event) => event.status === "active")
-        .length.toString(),
-      change: {
-        trend: "up",
-        value: "12%",
-        description: "currently running",
+      {
+        title: "Active Events",
+        value: transformedEvents
+          .filter((event) => event.status === "active")
+          .length.toString(),
+        change: {
+          trend: "up",
+          value: "12%",
+          description: "currently running",
+        },
       },
-    },
-    {
-      title: "Pending Approval",
-      value: eventData
-        .filter((event) => event.status === "pending")
-        .length.toString(),
-      change: {
-        description: "Awaiting Review",
+      {
+        title: "Pending Approval",
+        value: transformedEvents
+          .filter((event) => event.status === "pending")
+          .length.toString(),
+        change: {
+          description: "Awaiting Review",
+        },
       },
-    },
-    {
-      title: "Suspended",
-      value: eventData
-        .filter((event) => event.status === "suspended")
-        .length.toString(),
-      change: {
-        description: "Events suspended",
+      {
+        title: "Suspended",
+        value: transformedEvents
+          .filter((event) => event.status === "suspended")
+          .length.toString(),
+        change: {
+          description: "Events suspended",
+        },
       },
-    },
-    {
-      title: "Past Events",
-      value: eventData
-        .filter((event) => event.status === "completed")
-        .length.toString(),
-      change: {
-        trend: "up",
-        value: "8%",
-        description: "from last month",
+      {
+        title: "Past Events",
+        value: transformedEvents
+          .filter((event) => event.status === "completed")
+          .length.toString(),
+        change: {
+          trend: "up",
+          value: "8%",
+          description: "from last month",
+        },
       },
-    },
-  ];
+    ],
+    [events, transformedEvents]
+  );
 
   const getInitials = (name: string): string => {
+    if (!name || typeof name !== "string") {
+      return "EV";
+    }
     return name
       .split(" ")
       .map((word) => word.charAt(0).toUpperCase())
@@ -318,14 +372,7 @@ export function EventsPage() {
       .slice(0, 2);
   };
 
-  //   const getVibeScoreColor = (score: number): string => {
-  //     if (score >= 90) return "text-green-600 bg-green-50";
-  //     if (score >= 80) return "text-blue-600 bg-blue-50";
-  //     if (score >= 70) return "text-yellow-600 bg-yellow-50";
-  //     return "text-red-600 bg-red-50";
-  //   };
-
-  const eventFields: TableField<Event>[] = [
+  const eventFields: TableField<UIEvent>[] = [
     {
       key: "name",
       header: "Event name",
@@ -350,9 +397,9 @@ export function EventsPage() {
     {
       key: "business",
       header: "Business",
-      cell: (value) => (
+      cell: (_, row) => (
         <div className="flex items-center gap-2">
-          <span className="font-medium">{value as string}</span>
+          <span className="font-medium">{row.business}</span>
         </div>
       ),
     },
@@ -369,11 +416,21 @@ export function EventsPage() {
     {
       key: "location",
       header: "Location",
-      cell: (value) => <span className="font-medium">{value as string}</span>,
+      cell: (_, row) => <span className="font-medium">{row.location}</span>,
     },
     {
-      key: "vibeScore",
-      header: "Vibe Score",
+      key: "ticketPrice",
+      header: "Ticket Price",
+      cell: (value) => (
+        <div className="text-center">
+          <span className="font-medium">${value as number}</span>
+        </div>
+      ),
+      align: "center",
+    },
+    {
+      key: "maxAttendees",
+      header: "Capacity",
       cell: (value) => (
         <div className="text-center">
           <span className="font-medium">{value as number}</span>
@@ -384,7 +441,7 @@ export function EventsPage() {
     {
       key: "status",
       header: "Status ↓",
-      cell: (value) => {
+      cell: (value, row) => {
         const statusConfig = {
           active: {
             label: "Active",
@@ -409,17 +466,47 @@ export function EventsPage() {
         };
 
         const config =
-          statusConfig[value as keyof typeof statusConfig] ||
-          statusConfig.active;
+          statusConfig[value as EventStatus] || statusConfig.active;
+
+        // Add action buttons for pending events
+        const isPending = value === "pending";
 
         return (
-          <Badge
-            variant="secondary"
-            className="flex flex-row items-center w-26 gap-2 bg-muted/50"
-          >
-            <div className={`size-2 rounded-full ${config.dotColor}`} />
-            {config.label}
-          </Badge>
+          <div className="flex flex-col items-center gap-2">
+            <Badge
+              variant="secondary"
+              className="flex flex-row items-center w-26 gap-2 bg-muted/50"
+            >
+              <div className={`size-2 rounded-full ${config.dotColor}`} />
+              {config.label}
+            </Badge>
+            {isPending && (
+              <div className="flex gap-1 mt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleApproveEvent(row.id);
+                  }}
+                >
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRejectEvent(row.id);
+                  }}
+                >
+                  Reject
+                </Button>
+              </div>
+            )}
+          </div>
         );
       },
       align: "center",
@@ -427,15 +514,21 @@ export function EventsPage() {
     },
   ];
 
-  const eventActions: TableAction<Event>[] = [
+  const eventActions: TableAction<UIEvent>[] = [
     {
       type: "view",
       label: "View Details",
       icon: <EyeIcon className="size-5" />,
       onClick: (event) => {
         console.log("View event details:", event);
-        // Navigate to event details page
-        navigate("event-details");
+        navigate(`/admin/events/${event.id}`);
+      },
+    },
+    {
+      type: "delete",
+      label: "Delete Event",
+      onClick: (event) => {
+        handleDeleteEvent(event.id);
       },
     },
   ];
@@ -450,6 +543,18 @@ export function EventsPage() {
           <div className="space-y-6">
             {/* Events Section */}
             <div className="rounded-lg border bg-card py-6 mb-6">
+              {/* Header with refresh button */}
+              <div className="flex justify-between items-center px-6 mb-4">
+                <h2 className="text-2xl font-bold">Event Management</h2>
+                <Button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  variant="outline"
+                >
+                  {loading ? "Refreshing..." : "Refresh Events"}
+                </Button>
+              </div>
+
               {/* Tabs for filtering events by status */}
               <Tabs
                 value={activeTab}
@@ -514,6 +619,7 @@ export function EventsPage() {
                       <Button
                         variant="outline"
                         className="flex items-center gap-2 h-12"
+                        disabled={loading}
                       >
                         <FilterIcon className="w-4 h-4" />
                         All Status
@@ -555,21 +661,24 @@ export function EventsPage() {
               {/* Results Count */}
               <div className="px-6 mt-4">
                 <p className="text-sm text-muted-foreground">
-                  Showing {filteredEvents.length} of {eventData.length} events
+                  Showing {filteredEvents.length} of {events.length} events
                   {(selectedStatuses.length > 0 || searchQuery) &&
                     " (filtered)"}
+                  {loading && " - Loading..."}
                 </p>
               </div>
 
-              <DataTable<Event>
+              <DataTable<UIEvent>
                 data={filteredEvents}
                 fields={eventFields}
                 actions={eventActions}
                 enableSelection={true}
                 enablePagination={true}
                 pageSize={5}
+                loading={loading}
                 onRowClick={(event) => {
                   console.log("Event clicked:", event);
+                  navigate(`/admin/events/${event.id}`);
                 }}
               />
             </div>

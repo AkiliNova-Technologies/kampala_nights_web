@@ -11,9 +11,10 @@ import { useReduxAuth } from "@/hooks/UseReduxAuth";
 
 interface SiteHeaderProps {
   rightActions?: ReactNode;
+  label?: string;
 }
 
-export function SiteHeader({ rightActions }: SiteHeaderProps) {
+export function SiteHeader({ rightActions, label }: SiteHeaderProps) {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
 
@@ -122,7 +123,7 @@ export function SiteHeader({ rightActions }: SiteHeaderProps) {
             orientation="vertical"
             className="mx-2 data-[orientation=vertical]:h-4"
           />
-          <h1 className="text-2xl font-medium">{pageTitle}</h1>
+          <h1 className="text-2xl font-medium">{label ? label :pageTitle}</h1>
         </div>
 
         {/* Middle - Search input */}

@@ -19,7 +19,8 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { NavHeader } from "./nav-header";
-import dashboardLogo from "@/assets/images/favicon.png";
+import dashboardLogo1 from "@/assets/images/favicon.png";
+import dashboardLogo2 from "@/assets/images/KN words.png";
 import { useReduxAuth } from "@/hooks/UseReduxAuth";
 
 export function BusinessAppSidebar({
@@ -30,8 +31,8 @@ export function BusinessAppSidebar({
   const data = {
     navHeader: [
       {
-        title: "KAMPALA NIGHTS",
-        logo: dashboardLogo,
+        logo1: dashboardLogo1,
+        logo2: dashboardLogo2,
       },
     ],
     navMain: [

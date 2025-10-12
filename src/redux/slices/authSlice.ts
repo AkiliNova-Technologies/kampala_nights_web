@@ -113,7 +113,7 @@ export const login = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await api.post("/auth/login", { email, password });
+      const response = await api.post("/api/v1/auth/login", { email, password });
 
       console.log("Login response:", response.data);
 
@@ -158,7 +158,7 @@ export const logoutAsync = createAsyncThunk(
   async (_, { dispatch }) => {
     try {
       // If you have a logout endpoint, call it here
-      await api.post("/auth/logout");
+      await api.post("/api/v1/auth/logout");
     } catch (error) {
       console.error("Logout API error:", error);
       // Even if logout API fails, we still logout locally

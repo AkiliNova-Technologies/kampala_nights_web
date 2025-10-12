@@ -51,21 +51,32 @@ export function BusinessesPage() {
   const [activeTab, setActiveTab] = useState<BusinessStatusTab>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<UIBusiness["status"][]>([]);
+  const [hasFetchedInitialData, setHasFetchedInitialData] = useState(false);
 
-  // FIX 3: Use the Redux hook and fetch data
-  const { businesses: businessData, loading, fetchBusinesses } = useReduxBusiness();
+  const { 
+    businesses: businessData, 
+    loading, 
+    fetchBusinesses, 
+    hasData 
+  } = useReduxBusiness();
 
   useEffect(() => {
-    // Fetch businesses when component mounts
-    fetchBusinesses({ page: 1, limit: 50 }); 
-  }, [fetchBusinesses]);
+    // Only fetch if no data and haven't fetched yet
+    if (!hasData && !hasFetchedInitialData && !loading) {
+      console.log("🔄 Fetching businesses for BusinessesPage...");
+      fetchBusinesses({ page: 1, limit: 50 });
+      setHasFetchedInitialData(true);
+    }
+  }, [fetchBusinesses, hasData, hasFetchedInitialData, loading]);
+
+  // Only show loading when we have no data AND are loading
+  const showLoading = loading && !hasData;
 
   const navigate = useNavigate();
 
-  // FIX 4: Map API data to UI format
+  
   const mappedBusinesses: UIBusiness[] = useMemo(() => {
     return businessData.map((business): UIBusiness => {
-      // Determine status based on isVerified and isActive
       let status: UIBusiness["status"] = "pending";
       if (business.isVerified && business.isActive) {
         status = "approved";
@@ -75,7 +86,6 @@ export function BusinessesPage() {
         status = "pending";
       }
 
-      // Format registration date (using verifiedAt or fallback)
       const registrationDate = business.businessAccount.verifiedAt 
         ? new Date(business.businessAccount.verifiedAt).toLocaleDateString()
         : "Not verified";
@@ -87,8 +97,8 @@ export function BusinessesPage() {
         registrationDate,
         status,
         address: business.businessAccount.address,
-        image: undefined, // You can add image if available
-        originalData: business, // Keep original data for API calls
+        image: undefined, 
+        originalData: business,
       };
     });
   }, [businessData]);
@@ -161,8 +171,6 @@ export function BusinessesPage() {
       title: "Total Businesses",
       value: mappedBusinesses.length.toString(),
       change: {
-        value: "5%",
-        trend: "up",
         description: "from last month",
       },
     },
@@ -172,8 +180,6 @@ export function BusinessesPage() {
         .filter((b) => b.status === "approved")
         .length.toString(),
       change: {
-        value: "2%",
-        trend: "up",
         description: "of total businesses",
       },
     },
@@ -183,17 +189,13 @@ export function BusinessesPage() {
         .filter((b) => b.status === "pending")
         .length.toString(),
       change: {
-        value: "2%",
-        trend: "up",
         description: "Awaiting review",
       },
     },
     {
       title: "Total Revenue",
-      value: "$2.4M",
+      value: "0",
       change: {
-        value: "15%",
-        trend: "up",
         description: "from last month",
       },
     },
@@ -464,7 +466,7 @@ export function BusinessesPage() {
                 enableSelection={true}
                 enablePagination={true}
                 pageSize={5}
-                loading={loading}
+                loading={showLoading}
                 onRowClick={(business) => {
                   console.log("Row clicked:", business);
                 }}

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = "https://kampala-nights-backend.onrender.com/api/v1";
+const BASE_URL = "https://kampala-nights-backend.onrender.com";
 
 if (!BASE_URL) {
   console.warn("❌ BASE_URL is not defined in Constants.expoConfig.extra");

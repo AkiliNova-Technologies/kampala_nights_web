@@ -21,87 +21,88 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { NavHeader } from "./nav-header";
-import dashboardLogo from "@/assets/images/favicon.png";
+import dashboardLogo1 from "@/assets/images/favicon.png";
+import dashboardLogo2 from "@/assets/images/KN words.png";
 import { useReduxAuth } from "@/hooks/UseReduxAuth";
 
-
-export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-
-  const {signout} = useReduxAuth();
+export function AdminAppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const { signout } = useReduxAuth();
 
   const data = {
-  navHeader: [
-    {
-      title: "KAMPALA NIGHTS",
-      logo: dashboardLogo,
-    },
-  ],
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/admin/",
-      icon: LayoutDashboardIcon,
-    },
-    {
-      title: "Businesses",
-      url: "/admin/businesses",
-      icon: Building2,
-    },
-    {
-      title: "Events",
-      url: "/admin/events",
-      icon: CalendarDays,
-    },
-    {
-      title: "Users Roles",
-      url: "/admin/users-management",
-      icon: Users,
-    },
-    {
-      title: "Campaigns",
-      url: "/admin/campaigns",
-      icon: Megaphone,
-    },
-    {
-      title: "Hot and Cold",
-      url: "/admin/hot-and-cold",
-      icon: Flame,
-    },
-    {
-      title: "Revenue",
-      url: "/admin/revenue",
-      icon: Landmark,
-    },
-    {
-      title: "Moderation",
-      url: "/admin/moderation",
-      icon: Shield,
-    },
-    {
-      title: "Support",
-      url: "/admin/support",
-      icon: MessageCircleQuestionMark,
-    },
-    {
-      title: "Settings",
-      url: "/admin/settings",
-      icon: SettingsIcon,
-    },
-  ],
-  navUser: [
-    {
-      title: "Sign Out",
-      icon: LogOut,
-      onPress: signout,
-    },
-  ],
-};
+    navHeader: [
+      {
+        logo1: dashboardLogo1,
+        logo2: dashboardLogo2,
+      },
+    ],
+    navMain: [
+      {
+        title: "Dashboard",
+        url: "/admin/",
+        icon: LayoutDashboardIcon,
+      },
+      {
+        title: "Businesses",
+        url: "/admin/businesses",
+        icon: Building2,
+      },
+      {
+        title: "Events",
+        url: "/admin/events",
+        icon: CalendarDays,
+      },
+      {
+        title: "Users Roles",
+        url: "/admin/users-management",
+        icon: Users,
+      },
+      {
+        title: "Campaigns",
+        url: "/admin/campaigns",
+        icon: Megaphone,
+      },
+      {
+        title: "Hot or Not",
+        url: "/admin/hot-or-cold",
+        icon: Flame,
+      },
+      {
+        title: "Revenue",
+        url: "/admin/revenue",
+        icon: Landmark,
+      },
+      {
+        title: "Moderation",
+        url: "/admin/moderation",
+        icon: Shield,
+      },
+      {
+        title: "Helpdesk",
+        url: "/admin/helpdesk",
+        icon: MessageCircleQuestionMark,
+      },
+      {
+        title: "Settings",
+        url: "/admin/settings",
+        icon: SettingsIcon,
+      },
+    ],
+    navUser: [
+      {
+        title: "Sign Out",
+        icon: LogOut,
+        onPress: signout,
+      },
+    ],
+  };
 
   return (
     <Sidebar collapsible="icon" {...props} className="p-0">
       <SidebarHeader>
-              <NavHeader items={data.navHeader} />
-            </SidebarHeader>
+        <NavHeader items={data.navHeader} />
+      </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>

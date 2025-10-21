@@ -173,7 +173,30 @@ export function EventDetailsPage() {
     );
   };
 
-  const getPaymentBadge = (ticketPrice: number) => {
+  // Calculate ticket price from eventTicketTypes
+  const getTicketPrice = (event: any): number => {
+    if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+      return event.eventTicketTypes[0].price; // Get price from first ticket type
+    }
+    return 0;
+  };
+
+  // Calculate estimated revenue
+  const getEstimatedRevenue = (event: any): number => {
+    if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+      const totalSold = event.eventTicketTypes.reduce((sum: number, ticket: any) => 
+        sum + ticket.soldCount, 0
+      );
+      const avgPrice = event.eventTicketTypes.reduce((sum: number, ticket: any) => 
+        sum + ticket.price, 0
+      ) / event.eventTicketTypes.length;
+      return totalSold * avgPrice;
+    }
+    return 0;
+  };
+
+  const getPaymentBadge = (event: any) => {
+    const ticketPrice = getTicketPrice(event);
     return ticketPrice > 0 ? (
       <Badge variant="default" className="text-green-800 bg-white">
         Paid
@@ -241,8 +264,16 @@ export function EventDetailsPage() {
     );
   }
 
-  const businessAccount = event.venue.businessAccount;
-  const baseUser = businessAccount.baseUser;
+  // Use placeholder business info since venue data might not be available
+  const businessInfo = {
+    companyName: "Event Business",
+    businessType: "Entertainment",
+    firstName: "Business",
+    lastName: "Owner",
+    email: "business@example.com",
+    phone: "+256 700 000 000"
+  };
+
   const firstImage = event.eventmedia?.find((media) => media.type === "IMAGE");
   const bannerImage =
     firstImage?.url ||
@@ -251,6 +282,8 @@ export function EventDetailsPage() {
     "/Event-Demo-Bg.png";
 
   const isPending = event.status === "PENDING";
+  const ticketPrice = getTicketPrice(event);
+  const estimatedRevenue = getEstimatedRevenue(event);
 
   return (
     <div className="min-h-screen">
@@ -310,7 +343,7 @@ export function EventDetailsPage() {
                     className="w-full h-64 object-cover rounded-t-lg"
                   />
                   <div className="absolute bottom-4 left-4">
-                    {getPaymentBadge(event.ticketPrice)}
+                    {getPaymentBadge(event)}
                   </div>
                 </div>
                 <div className="flex items-start justify-between mb-4 px-6">
@@ -339,14 +372,14 @@ export function EventDetailsPage() {
                       <MapPin className="h-5 w-5 text-gray-400" />
                       <div>
                         <p className="text-sm text-gray-500">Location</p>
-                        <p className="font-medium">{event.venue.address}</p>
+                        <p className="font-medium max-w-2xs">{event.location}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Ticket className="h-5 w-5 text-gray-400" />
                       <div>
                         <p className="text-sm text-gray-500">Ticket Price</p>
-                        <p className="font-medium">$ {event.ticketPrice}</p>
+                        <p className="font-medium">UGX {ticketPrice.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
@@ -377,10 +410,7 @@ export function EventDetailsPage() {
                           Estimated Revenue
                         </p>
                         <p className="font-medium">
-                          $
-                          {(
-                            event.ticketPrice * event.maxAttendees
-                          ).toLocaleString()}
+                          UGX {estimatedRevenue.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -395,17 +425,17 @@ export function EventDetailsPage() {
               <Card className="p-6">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-14 w-14">
-                    <AvatarImage src={""} alt={businessAccount.companyName} />
+                    <AvatarImage src={""} alt={businessInfo.companyName} />
                     <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                      {getInitials(businessAccount.companyName)}
+                      {getInitials(businessInfo.companyName)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <h3 className="text-lg font-semibold">
-                      {businessAccount.companyName}
+                      {businessInfo.companyName}
                     </h3>
                     <p className="text-sm text-gray-600">
-                      {businessAccount.businessType}
+                      {businessInfo.businessType}
                     </p>
                   </div>
                 </div>
@@ -414,16 +444,16 @@ export function EventDetailsPage() {
                   <div className="flex items-center gap-4">
                     <User2 className="h-4 w-4 text-gray-400" />
                     <span className="text-sm">
-                      {baseUser.firstName} {baseUser.lastName}
+                      {businessInfo.firstName} {businessInfo.lastName}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
                     <Mail className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">{baseUser.email}</span>
+                    <span className="text-sm">{businessInfo.email}</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <Phone className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">{businessAccount.phone}</span>
+                    <span className="text-sm">{businessInfo.phone}</span>
                   </div>
                 </div>
               </Card>
@@ -482,8 +512,8 @@ export function EventDetailsPage() {
                             Event approved
                           </p>
                           <p className="text-xs text-gray-500">
-                            {formatDate(event.approvedAt)} at{" "}
-                            {formatTime(event.approvedAt)}
+                            {formatDate(event.approvedAt || '')} at{" "}
+                            {formatTime(event.approvedAt || '')}
                           </p>
                         </div>
                       </Card>
@@ -492,8 +522,8 @@ export function EventDetailsPage() {
                       <div className="pl-4 py-3">
                         <p className="text-md font-medium mb-2">Last updated</p>
                         <p className="text-xs text-gray-500">
-                          {formatDate(event.updatedAt)} at{" "}
-                          {formatTime(event.updatedAt)}
+                          {formatDate(event.updatedAt || event.createdAt)} at{" "}
+                          {formatTime(event.updatedAt || event.createdAt)}
                         </p>
                       </div>
                     </Card>

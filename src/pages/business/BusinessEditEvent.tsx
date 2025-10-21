@@ -11,68 +11,150 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Image, MapPin, ReceiptText } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import CapacityPricing from "@/components/capacity-pricing";
 import { ImageUploadField } from "@/components/image-upload-field";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useReduxEvents } from "@/hooks/useReduxEvents";
+import { toast } from "sonner";
+import { LocationInput } from "@/components/ui/location-input";
 
 interface EventFormData {
-  // Event Details
-  eventTitle: string;
-  category: string;
+  // Event Details (matching backend fields)
+  name: string;
   description: string;
+  eventType: string;
 
   // When & Where
-  eventDate: string;
-  eventTime: string;
+  startDateTime: string;
+  endDateTime: string;
   location: string;
+  latitude: number;
+  longitude: number;
 
   // Capacity & Pricing
   maxAttendees: number;
-  isPaidEvent: boolean;
-  tickets: Array<{
+  isPaid: boolean;
+  allowReservations: boolean;
+  ticketTypes: Array<{
     id: string;
     name: string;
     price: number;
     quantity: number;
   }>;
 
-  // Event Images
-  backgroundImage: File | null;
-  posterImage: File | null;
+  backgroundImageUrl: string | null;
+  coverImageUrl: string | null;
 }
+
+const getDateTimeFromTimeSlot = (date: string, timeSlot: string): string => {
+  const dateObj = new Date(date);
+
+  switch (timeSlot) {
+    case "morning":
+      dateObj.setHours(10, 0, 0, 0);
+      break;
+    case "afternoon":
+      dateObj.setHours(14, 0, 0, 0);
+      break;
+    case "evening":
+      dateObj.setHours(18, 0, 0, 0);
+      break;
+    case "all-day":
+      dateObj.setHours(12, 0, 0, 0);
+      break;
+    default:
+      dateObj.setHours(12, 0, 0, 0);
+  }
+
+  return dateObj.toISOString();
+};
+
+const getEndDateTime = (startDateTime: string): string => {
+  const endDate = new Date(startDateTime);
+  endDate.setHours(endDate.getHours() + 3);
+  return endDate.toISOString();
+};
+
+const getDateFromISO = (isoString: string): string => {
+  return new Date(isoString).toISOString().split('T')[0];
+};
+
+const getTimeSlotFromISO = (isoString: string): string => {
+  const date = new Date(isoString);
+  const hours = date.getHours();
+  
+  if (hours >= 5 && hours < 12) return "morning";
+  if (hours >= 12 && hours < 17) return "afternoon";
+  if (hours >= 17 && hours < 22) return "evening";
+  return "all-day";
+};
 
 export function BusinessEditEventPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const { currentEvent, fetchBusinessEventById, updateBusinessEvent, loading } = useReduxEvents({ mode: 'business' });
 
-  // Initialize form state
   const [formData, setFormData] = useState<EventFormData>({
-    eventTitle: "Summer Music Festival 2024",
-    category: "music",
-    description:
-      "Join us for an unforgettable summer music festival featuring top artists, food trucks, and amazing vibes!",
-    eventDate: "2024-07-15",
-    eventTime: "evening",
-    location: "Central Park, New York",
-    maxAttendees: 300,
-    isPaidEvent: false,
-    tickets: [
-      {
-        id: "1",
-        name: "e.g VIP, General, Early Bird",
-        price: 0,
-        quantity: 100,
-      },
-    ],
-    backgroundImage: null,
-    posterImage: null,
+    name: "",
+    description: "",
+    eventType: "",
+    startDateTime: "",
+    endDateTime: "",
+    location: "",
+    latitude: 0,
+    longitude: 0,
+    maxAttendees: 0,
+    isPaid: false,
+    allowReservations: false,
+    ticketTypes: [],
+    backgroundImageUrl: null,
+    coverImageUrl: null,
   });
+
+  const [uploadingImages, setUploadingImages] = useState({
+    background: false,
+    poster: false,
+  });
+
+  useEffect(() => {
+    if (id) {
+      fetchBusinessEventById(id);
+    }
+  }, [id, fetchBusinessEventById]);
+
+  // Populate form when currentEvent changes
+  useEffect(() => {
+    if (currentEvent && currentEvent.id === id) {
+      setFormData({
+        name: currentEvent.name || "",
+        description: currentEvent.description || "",
+        eventType: currentEvent.eventType || "",
+        startDateTime: currentEvent.startDateTime || "",
+        endDateTime: currentEvent.endDateTime || "",
+        location: currentEvent.location || "",
+        latitude: currentEvent.latitude || 0,
+        longitude: currentEvent.longitude || 0,
+        maxAttendees: currentEvent.maxAttendees || 0,
+        isPaid: currentEvent.isPaid || false,
+        allowReservations: currentEvent.allowReservations || false,
+        ticketTypes: currentEvent.eventTicketTypes?.map(ticket => ({
+          id: ticket.id,
+          name: ticket.name,
+          price: ticket.price,
+          quantity: ticket.quantity,
+        })) || [],
+        backgroundImageUrl: currentEvent.backgroundImageUrl || null,
+        coverImageUrl: currentEvent.coverImageUrl || null,
+      });
+    }
+  }, [currentEvent, id]);
 
   // Handle text input changes
   const handleInputChange = (
     field: keyof EventFormData,
-    value: string | number
+    value: string | number | boolean
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -88,19 +170,59 @@ export function BusinessEditEventPage() {
     }));
   };
 
-  // Handle image uploads
-  const handleBackgroundImageChange = (file: File | null) => {
+  // Handle location selection with coordinates
+  const handlePlaceSelect = (place: {
+    address: string;
+    placeId: string;
+    lat?: number;
+    lng?: number;
+  }) => {
     setFormData((prev) => ({
       ...prev,
-      backgroundImage: file,
+      location: place.address,
+      latitude: place.lat || 0,
+      longitude: place.lng || 0,
     }));
   };
 
-  const handlePosterImageChange = (file: File | null) => {
+  const handleBackgroundImageUpload = async (url: string | null) => {
     setFormData((prev) => ({
       ...prev,
-      posterImage: file,
+      backgroundImageUrl: url,
     }));
+    setUploadingImages((prev) => ({ ...prev, background: false }));
+    if (url) {
+      toast.success("Background image uploaded successfully!");
+    }
+  };
+
+  const handlePosterImageUpload = async (url: string | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      coverImageUrl: url,
+    }));
+    setUploadingImages((prev) => ({ ...prev, poster: false }));
+    if (url) {
+      toast.success("Poster image uploaded successfully!");
+    }
+  };
+
+  const handleBackgroundImageError = (error: string) => {
+    toast.error(`Background image upload failed: ${error}`);
+    setUploadingImages((prev) => ({ ...prev, background: false }));
+  };
+
+  const handlePosterImageError = (error: string) => {
+    toast.error(`Poster image upload failed: ${error}`);
+    setUploadingImages((prev) => ({ ...prev, poster: false }));
+  };
+
+  const handleBackgroundImageStart = () => {
+    setUploadingImages((prev) => ({ ...prev, background: true }));
+  };
+
+  const handlePosterImageStart = () => {
+    setUploadingImages((prev) => ({ ...prev, poster: true }));
   };
 
   // Handle capacity pricing changes
@@ -116,37 +238,134 @@ export function BusinessEditEventPage() {
   }) => {
     setFormData((prev) => ({
       ...prev,
-      ...updates,
+      maxAttendees: updates.maxAttendees ?? prev.maxAttendees,
+      isPaid: updates.isPaidEvent ?? prev.isPaid,
+      ticketTypes: updates.tickets ?? prev.ticketTypes,
     }));
   };
 
   // Form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Log all form data (replace with your API call)
-    console.log("Form Data:", formData);
+    if (!id) {
+      toast.error("Event ID is missing");
+      return;
+    }
 
-    // Here you would typically send the data to your backend
-    // Example API call:
-    // createEvent(formData).then(() => {
-    //   navigate('/events');
-    // });
+    // Basic validation
+    if (!formData.name.trim()) {
+      toast.error("Please enter an event name");
+      return;
+    }
 
-    // For now, just log and show success
-    alert("Event updated successfully!");
-    console.log("Complete form data:", JSON.stringify(formData, null, 2));
+    if (!formData.eventType) {
+      toast.error("Please select an event type");
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      toast.error("Please enter a description");
+      return;
+    }
+
+    if (!formData.startDateTime) {
+      toast.error("Please select an event date");
+      return;
+    }
+
+    if (!formData.location.trim()) {
+      toast.error("Please enter a location");
+      return;
+    }
+
+    if (formData.maxAttendees <= 0) {
+      toast.error("Please enter a valid number of maximum attendees");
+      return;
+    }
+
+    // Validate tickets if it's a paid event
+    if (formData.isPaid) {
+      const invalidTickets = formData.ticketTypes.filter(
+        (ticket) =>
+          !ticket.name.trim() || ticket.price <= 0 || ticket.quantity <= 0
+      );
+
+      if (invalidTickets.length > 0) {
+        toast.error("Please fill in all ticket details correctly");
+        return;
+      }
+    }
+
+    try {
+      // Prepare data for API
+      const eventData = {
+        name: formData.name,
+        description: formData.description,
+        startDateTime: formData.startDateTime,
+        endDateTime: formData.endDateTime,
+        maxAttendees: formData.maxAttendees,
+        eventType: formData.eventType,
+        location: formData.location,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        backgroundImageUrl: formData.backgroundImageUrl || undefined,
+        coverImageUrl: formData.coverImageUrl || undefined,
+        isPaid: formData.isPaid,
+        allowReservations: formData.allowReservations,
+        ticketTypes: formData.isPaid ? formData.ticketTypes.map(ticket => ({
+          id: ticket.id,
+          name: ticket.name,
+          price: ticket.price,
+          quantity: ticket.quantity
+        })) : [],
+        reservationPricing: [], 
+        media: [] 
+      };
+
+      console.log("Updating event with data:", eventData);
+
+      // Call the Redux action and check the result properly
+      const result = await updateBusinessEvent(id, eventData);
+
+      // Check if the action was fulfilled by examining the result
+      if (result.meta.requestStatus === "fulfilled") {
+        toast.success("Event updated successfully!");
+        navigate("/business/events");
+      } else {
+        throw new Error((result.payload as string) || "Failed to update event");
+      }
+    } catch (error: any) {
+      console.error("Failed to update event:", error);
+      toast.error(error.message || "Failed to update event. Please try again.");
+    }
   };
 
   const handleCancel = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to cancel? Any unsaved changes will be lost."
-      )
-    ) {
+    const hasData =
+      formData.name.trim() !== "" ||
+      formData.description.trim() !== "" ||
+      formData.location.trim() !== "" ||
+      formData.maxAttendees > 0;
+
+    if (hasData) {
+      if (
+        window.confirm(
+          "Are you sure you want to cancel? Any unsaved changes will be lost."
+        )
+      ) {
+        navigate(-1);
+      }
+    } else {
       navigate(-1);
     }
   };
+
+  // Get display values for date and time inputs
+  const displayDate = formData.startDateTime ? getDateFromISO(formData.startDateTime) : "";
+  const displayTime = formData.startDateTime ? getTimeSlotFromISO(formData.startDateTime) : "";
+
+  const isFormSubmittable = !loading && !uploadingImages.background && !uploadingImages.poster;
 
   return (
     <div className="min-h-screen">
@@ -160,6 +379,7 @@ export function BusinessEditEventPage() {
                   type="button"
                   variant={"secondary"}
                   onClick={() => navigate(-1)}
+                  disabled={!isFormSubmittable}
                 >
                   <ArrowLeft />
                 </Button>
@@ -186,46 +406,48 @@ export function BusinessEditEventPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label
-                      htmlFor="event-title"
+                      htmlFor="event-name"
                       className="text-sm font-medium mb-2 block"
                     >
-                      Event Title
+                      Event Name
                     </Label>
                     <Input
-                      id="event-title"
-                      placeholder="Enter event title"
-                      value={formData.eventTitle}
+                      id="event-name"
+                      placeholder="Enter event name"
+                      value={formData.name}
                       onChange={(e) =>
-                        handleInputChange("eventTitle", e.target.value)
+                        handleInputChange("name", e.target.value)
                       }
                       className="h-11"
                       required
+                      disabled={!isFormSubmittable}
                     />
                   </div>
 
                   <div>
                     <Label
-                      htmlFor="category"
+                      htmlFor="eventType"
                       className="text-sm font-medium mb-2 block"
                     >
-                      Category
+                      Event Type
                     </Label>
                     <Select
-                      value={formData.category}
+                      value={formData.eventType}
                       onValueChange={(value) =>
-                        handleSelectChange("category", value)
+                        handleSelectChange("eventType", value)
                       }
+                      disabled={!isFormSubmittable}
                     >
                       <SelectTrigger className="w-full min-h-11">
-                        <SelectValue placeholder="Select Category" />
+                        <SelectValue placeholder="Select Event Type" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="music">Music</SelectItem>
-                        <SelectItem value="sports">Sports</SelectItem>
-                        <SelectItem value="food">Food & Drink</SelectItem>
-                        <SelectItem value="arts">Arts & Culture</SelectItem>
-                        <SelectItem value="business">Business</SelectItem>
-                        <SelectItem value="technology">Technology</SelectItem>
+                       <SelectContent>
+                        <SelectItem value="party">Party</SelectItem>
+                        <SelectItem value="conference">Conference</SelectItem>
+                        <SelectItem value="wedding">Wedding</SelectItem>
+                        <SelectItem value="concert">Concert</SelectItem>
+                        <SelectItem value="workshop">Workshop</SelectItem>
+                        <SelectItem value="networking">Networking</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -247,6 +469,7 @@ export function BusinessEditEventPage() {
                       handleInputChange("description", e.target.value)
                     }
                     required
+                    disabled={!isFormSubmittable}
                   />
                 </div>
               </div>
@@ -272,12 +495,20 @@ export function BusinessEditEventPage() {
                   <Input
                     id="event-date"
                     type="date"
-                    value={formData.eventDate}
-                    onChange={(e) =>
-                      handleInputChange("eventDate", e.target.value)
-                    }
+                    value={displayDate}
+                    onChange={(e) => {
+                      const newDate = e.target.value;
+                      const newStartDateTime = getDateTimeFromTimeSlot(newDate, displayTime);
+                      const newEndDateTime = getEndDateTime(newStartDateTime);
+                      setFormData(prev => ({
+                        ...prev,
+                        startDateTime: newStartDateTime,
+                        endDateTime: newEndDateTime
+                      }));
+                    }}
                     className="h-11"
                     required
+                    disabled={!isFormSubmittable}
                   />
                 </div>
 
@@ -289,10 +520,17 @@ export function BusinessEditEventPage() {
                     Event Time
                   </Label>
                   <Select
-                    value={formData.eventTime}
-                    onValueChange={(value) =>
-                      handleSelectChange("eventTime", value)
-                    }
+                    value={displayTime}
+                    onValueChange={(value) => {
+                      const newStartDateTime = getDateTimeFromTimeSlot(displayDate, value);
+                      const newEndDateTime = getEndDateTime(newStartDateTime);
+                      setFormData(prev => ({
+                        ...prev,
+                        startDateTime: newStartDateTime,
+                        endDateTime: newEndDateTime
+                      }));
+                    }}
+                    disabled={!isFormSubmittable}
                   >
                     <SelectTrigger className="h-11 min-h-11 w-full">
                       <SelectValue placeholder="Select Time" />
@@ -313,15 +551,17 @@ export function BusinessEditEventPage() {
                 >
                   Location
                 </Label>
-                <Input
+                <LocationInput
                   id="location"
-                  placeholder="Enter event location"
+                  icon={<MapPin className="size-5" />}
                   value={formData.location}
-                  onChange={(e) =>
-                    handleInputChange("location", e.target.value)
-                  }
+                  onChange={(value) => handleInputChange("location", value)}
+                  onPlaceSelect={handlePlaceSelect}
+                  placeholder="Enter event location"
+                  country="ug"
                   className="w-full h-11"
                   required
+                  disabled={!isFormSubmittable}
                 />
               </div>
             </div>
@@ -330,10 +570,11 @@ export function BusinessEditEventPage() {
             <CapacityPricing
               formData={{
                 maxAttendees: formData.maxAttendees,
-                isPaidEvent: formData.isPaidEvent,
-                tickets: formData.tickets,
+                isPaidEvent: formData.isPaid,
+                tickets: formData.ticketTypes,
               }}
               onFormChange={handleCapacityPricingChange}
+              disabled={!isFormSubmittable}
             />
 
             {/* Event Images Section */}
@@ -353,8 +594,11 @@ export function BusinessEditEventPage() {
                     description="Event background image. Used for event banners and hero sections."
                     recommendedSize="1920×1080px"
                     formats="JPEG or PNG"
-                    maxSize="10MB"
-                    onImageChange={handleBackgroundImageChange}
+                    maxSize={10}
+                    onImageUpload={handleBackgroundImageUpload}
+                    onUploadError={handleBackgroundImageError}
+                    onUploadStart={handleBackgroundImageStart}
+                    existingImageUrl={formData.backgroundImageUrl}
                   />
                 </div>
 
@@ -365,8 +609,11 @@ export function BusinessEditEventPage() {
                     description="Event poster for cards and listings."
                     recommendedSize="400×300px"
                     formats="JPG, PNG, WebP"
-                    maxSize="10MB"
-                    onImageChange={handlePosterImageChange}
+                    maxSize={10}
+                    onImageUpload={handlePosterImageUpload}
+                    onUploadError={handlePosterImageError}
+                    onUploadStart={handlePosterImageStart}
+                    existingImageUrl={formData.coverImageUrl}
                   />
                 </div>
               </div>
@@ -379,6 +626,7 @@ export function BusinessEditEventPage() {
                 variant="outline"
                 className="h-11 flex-1"
                 onClick={handleCancel}
+                disabled={!isFormSubmittable}
               >
                 Cancel
               </Button>
@@ -386,8 +634,16 @@ export function BusinessEditEventPage() {
                 type="submit"
                 variant={"secondary"}
                 className="h-11 bg-[#5041D0] flex-1 text-white hover:bg-[#5041D0]/90"
+                disabled={!isFormSubmittable}
               >
-                Update Event
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Updating Event...
+                  </>
+                ) : (
+                  "Update Event"
+                )}
               </Button>
             </div>
           </div>

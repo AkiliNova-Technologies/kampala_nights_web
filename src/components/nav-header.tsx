@@ -34,20 +34,20 @@ export function NavHeader({
                       <img
                         src={item.logo1}
                         alt=""
-                        className="h-11 w-11 min-w-6"
+                        className="h-9 w-9 min-w-6"
                       />
                     ) : (
                       <img
                         src={item.logo1}
                         alt=""
-                        className="h-6 w-6 min-w-6"
+                        className="h-6 w-6 min-w-6 max-h-6"
                       />
                     )}
                     {!collapsed && item.logo2 && (
                       <img
                         src={item.logo2}
                         alt=""
-                        className="h-12 w-32 min-w-6 ml-2"
+                        className="h-10 w-28 min-w-6 ml-1"
                       />
                     )}
                   </>

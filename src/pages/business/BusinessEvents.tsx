@@ -1,4 +1,4 @@
-import { EventCards, type Event } from "@/components/event-cards";
+import { EventCards } from "@/components/event-cards";
 import { SectionCards, type CardData } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
@@ -10,18 +10,19 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { Search } from "@/components/ui/search";
-import { FilterIcon, Plus } from "lucide-react";
+import { DollarSign, FilterIcon, HandCoins, Plus, Users } from "lucide-react";
 import { useState, useMemo } from "react";
-import Event1 from "@/assets/images/event1.png";
-import Event2 from "@/assets/images/event2.png";
-import Event3 from "@/assets/images/event3.png";
 import { DeleteEventDialog } from "@/components/delete-event-dialog";
 import { useNavigate } from "react-router-dom";
 
-type EventStatus = "Pending" | "Approved" | "Rejected";
+import type { Event, EventStatus } from "@/types/event";
+import { useReduxEvents } from "@/hooks/useReduxEvents";
+// import { useEvents } from "@/hooks/useEvent";
 
 export function BusinessEventsPage() {
   const navigate = useNavigate();
+  const { events, deleteEvent } = useReduxEvents({ mode: "business" });
+  // const { events, deleteEvent } = useEvents();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<EventStatus[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -29,138 +30,49 @@ export function BusinessEventsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
-  // Mock events data based on your provided examples
-  const [eventsData, setEventsData] = useState<Event[]>([
-    {
-      id: "1",
-      title: "Saturday Night Fever",
-      description:
-        "Exclusive VIP experience with premium cocktails and live entertainment.",
-      date: "Oct 25, 2025",
-      time: "20:00",
-      location: "Kololo, Kampala",
-      attendees: "120/150",
-      price: "Free",
-      status: "Pending",
-      category: "VIP",
-      imageUrl: Event1,
-    },
-    {
-      id: "2",
-      title: "Acoustic Night",
-      description:
-        "Intimate acoustic session with local artists and craft cocktails.",
-      date: "Oct 25, 2025",
-      time: "20:00",
-      location: "Kololo, Kampala",
-      attendees: "120/150",
-      price: "Paid",
-      status: "Approved",
-      category: "Music",
-      imageUrl: Event2,
-    },
-    {
-      id: "3",
-      title: "VIP Lounge Experience",
-      description:
-        "Exclusive VIP experience with premium cocktails and live entertainment.",
-      date: "Oct 29, 2025",
-      time: "22:00",
-      location: "Kololo, Kampala",
-      attendees: "90/150",
-      price: "Paid",
-      status: "Approved",
-      category: "VIP",
-      imageUrl: Event3,
-    },
-    {
-      id: "4",
-      title: "Wine & Rhymes Night",
-      description:
-        "An evening of poetry and fine wines in a sophisticated setting.",
-      date: "Nov 2, 2025",
-      time: "19:00",
-      location: "Najjera, Kampala",
-      attendees: "75/100",
-      price: "Paid",
-      status: "Approved",
-      category: "Cultural",
-      imageUrl: Event2,
-    },
-    {
-      id: "5",
-      title: "Amapiano Kasiki",
-      description: "Dance the night away with the hottest Amapiano beats.",
-      date: "Nov 5, 2025",
-      time: "21:00",
-      location: "Kabalagala, Kampala",
-      attendees: "200/250",
-      price: "Paid",
-      status: "Pending",
-      category: "Music",
-      imageUrl: Event3,
-    },
-    {
-      id: "6",
-      title: "Rooftop Sundowner",
-      description: "Sunset drinks with panoramic city views and chill vibes.",
-      date: "Sep 15, 2025",
-      time: "17:00",
-      location: "City Center, Kampala",
-      attendees: "50/80",
-      price: "Free",
-      status: "Rejected",
-      category: "Social",
-    },
-  ]);
-
-  // Available status options for filter
   const statusOptions: { value: EventStatus; label: string }[] = [
-    { value: "Pending", label: "Pending" },
-    { value: "Approved", label: "Approved" },
-    { value: "Rejected", label: "Rejected" },
+    { value: "PENDING", label: "Pending" },
+    { value: "APPROVED", label: "Approved" },
+    { value: "REJECTED", label: "Rejected" },
+    { value: "COMPLETED", label: "Live" },
+    { value: "CANCELLED", label: "Cancelled" },
   ];
 
-  // Get unique categories from events
   const categoryOptions = useMemo(() => {
-    const categories = [...new Set(eventsData.map((event) => event.category))];
+    const categories = [...new Set(events.map((event) => event.eventType))];
     return categories.map((category) => ({
       value: category,
-      label: category,
+      label: category.charAt(0).toUpperCase() + category.slice(1).toLowerCase(),
     }));
-  }, [eventsData]);
+  }, [events]);
 
-  // Filter events based on active tab, search query, and selected filters
   const filteredEvents = useMemo(() => {
-    let filtered = eventsData;
+    let filtered = events;
 
-    // Apply status filter if any statuses are selected
     if (selectedStatuses.length > 0) {
       filtered = filtered.filter((event) =>
         selectedStatuses.includes(event.status)
       );
     }
 
-    // Apply category filter if any categories are selected
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((event) =>
-        selectedCategories.includes(event.category)
+        selectedCategories.includes(event.eventType)
       );
     }
 
-    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(
         (event) =>
-          event.title.toLowerCase().includes(query) ||
+          event.name.toLowerCase().includes(query) ||
           event.description.toLowerCase().includes(query) ||
           event.location.toLowerCase().includes(query)
       );
     }
 
     return filtered;
-  }, [eventsData, selectedStatuses, selectedCategories, searchQuery]);
+  }, [events, selectedStatuses, selectedCategories, searchQuery]);
 
   const handleStatusFilterChange = (status: EventStatus) => {
     setSelectedStatuses((prev) =>
@@ -184,39 +96,87 @@ export function BusinessEventsPage() {
     setSearchQuery("");
   };
 
-  // Event statistics cards data
-  const eventCards: CardData[] = [
-    {
-      title: "Total Events",
-      value: eventsData.length.toString(),
-      change: {
-        value: "0%",
-        description: "from last month",
+  // Calculate statistics from actual event data
+  const eventCards: CardData[] = useMemo(() => {
+    const totalEvents = events.length;
+
+    // Calculate total attendees from ticket sales
+    const totalAttendees = events.reduce((total, event) => {
+      if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+        return (
+          total +
+          event.eventTicketTypes.reduce(
+            (ticketTotal, ticket) => ticketTotal + ticket.soldCount,
+            0
+          )
+        );
+      }
+      return total;
+    }, 0);
+
+    // Calculate average attendance rate
+    const avgAttendance =
+      events.length > 0
+        ? Math.round(
+            (totalAttendees /
+              events.reduce((total, event) => total + event.maxAttendees, 0)) *
+              100
+          )
+        : 0;
+
+    // Calculate total revenue
+    const totalRevenue = events.reduce((total, event) => {
+      if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+        return (
+          total +
+          event.eventTicketTypes.reduce(
+            (revenue, ticket) => revenue + ticket.price * ticket.soldCount,
+            0
+          )
+        );
+      }
+      return total;
+    }, 0);
+
+    return [
+      {
+        title: "Total Events",
+        value: totalEvents.toString(),
+        change: {
+          description: "from last month",
+        },
+        rightIcon: <HandCoins className="h-4 w-4 text-black" />,
+        iconBgColor: "bg-[#D7FFC3]",
       },
-    },
-    {
-      title: "Total Check Ins",
-      value: "0",
-      change: {
-        description: "Across all events",
+      {
+        title: "Total Attendees",
+        value: totalAttendees.toLocaleString(),
+        change: {
+          description: "Across all events",
+        },
+        rightIcon: <Users className="h-4 w-4 text-black" />,
+        iconBgColor: "bg-[#DECCFE]",
       },
-    },
-    {
-      title: "Total Reservations",
-      value: "0%",
-      change: {
-        value: "0%",
-        description: "Vibe Core Rate",
+      {
+        title: "Avg. Attendance",
+        value: `${avgAttendance}%`,
+        change: {
+          description: "Vibe Core Rate",
+        },
+        rightIcon: <Users className="h-4 w-4 text-black" />,
+        iconBgColor: "bg-[#DECCFE]",
       },
-    },
-    {
-      title: "Total Revenue",
-      value: "$0",
-      change: {
-        description: "From paid events",
+      {
+        title: "Total Revenue",
+        value: `UGX ${totalRevenue.toLocaleString()}`,
+        change: {
+          description: "From paid events",
+        },
+        rightIcon: <DollarSign className="h-4 w-4 text-black" />,
+        iconBgColor: "bg-[#C4E8D1]",
       },
-    },
-  ];
+    ];
+  }, [events]);
 
   const handleDeleteClick = (event: Event) => {
     setEventToDelete(event);
@@ -224,17 +184,17 @@ export function BusinessEventsPage() {
   };
 
   const handleDeleteConfirm = (eventId: string) => {
-    // Remove the event from the eventsData
-    setEventsData((prev) => prev.filter((event) => event.id !== eventId));
+    deleteEvent(eventId);
     setDeleteDialogOpen(false);
     setEventToDelete(null);
   };
 
   const handleEditEvent = (event: Event) => {
-    // Navigate to edit page or open edit modal
-    console.log("Edit event:", event.id);
-    navigate("/business/events/edit-event");
-    // router.push(`/events/edit/${event.id}`);
+    navigate(`/business/events/${event.id}/edit`);
+  };
+
+  const handleViewEvent = (event: Event) => {
+    navigate(`/business/events/${event.id}`);
   };
 
   return (
@@ -333,7 +293,6 @@ export function BusinessEventsPage() {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  {/* Clear Filters Button */}
                   {(selectedStatuses.length > 0 ||
                     selectedCategories.length > 0 ||
                     searchQuery) && (
@@ -356,6 +315,7 @@ export function BusinessEventsPage() {
                   onLayoutChange={setLayout}
                   onSearch={setSearchQuery}
                   onEditEvent={handleEditEvent}
+                  onViewEvent={handleViewEvent}
                   onDeleteEvent={handleDeleteClick}
                   onStatusFilter={(status) =>
                     setSelectedStatuses(

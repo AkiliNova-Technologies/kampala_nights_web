@@ -9,6 +9,7 @@ export interface BusinessAccount {
   id: string;
   companyName: string;
   businessType: string;
+  status: string;
   phone: string;
   address: string;
   isVerified: boolean;

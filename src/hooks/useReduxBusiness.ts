@@ -16,11 +16,12 @@ import type {
   BusinessAccount,
 } from "@/redux/slices/businessSlice";
 import type { RootState } from "@/redux/store";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useMemo } from "react";
 
 export function useReduxBusiness() {
   const dispatch = useAppDispatch();
   const businessState = useAppSelector((state: RootState) => state.business);
+  const authState = useAppSelector((state: RootState) => state.auth);
   const hasInitialized = useRef(false);
 
   const {
@@ -39,6 +40,9 @@ export function useReduxBusiness() {
     lastFetched = null,
   } = businessState;
 
+  // Get authenticated user ID from auth state
+  const currentUserId = authState.user?.id;
+
   useEffect(() => {
     if (!hasInitialized.current) {
       console.log("🔄 Loading businesses from cache...");
@@ -46,6 +50,13 @@ export function useReduxBusiness() {
       hasInitialized.current = true;
     }
   }, [dispatch]);
+
+  // Memoized filtered business for current user
+  const currentUserBusiness = useMemo(() => {
+    if (!currentUserId) return null;
+    
+    return businesses.find(business => business.id === currentUserId) || null;
+  }, [businesses, currentUserId]);
 
   // Actions - Use consistent naming
   const fetchBusinesses = useCallback(
@@ -109,10 +120,12 @@ export function useReduxBusiness() {
     // State
     businesses,
     currentBusiness,
+    currentUserBusiness, 
     loading,
     error,
     pagination,
     lastFetched,
+    currentUserId, 
 
     // Actions
     getBusinesses: fetchBusinesses,
@@ -126,5 +139,6 @@ export function useReduxBusiness() {
     clearBusinesses: clearBusinessesData,
     refreshBusinesses: refreshBusinessesData,
     hasData: businesses.length > 0,
+    hasCurrentUserBusiness: !!currentUserBusiness,
   };
 }

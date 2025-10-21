@@ -183,8 +183,8 @@ export function LeaderboardDialog({
           </div>
 
           {/* Podium Section */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-3 items-center p-4 px-24 bg-white rounded-lg">
+          <Card className="space-y-4 bg-[#1E0954]">
+            <div className="grid grid-cols-3 items-center p-4 px-24 rounded-lg">
               {/* Rank 2 - Left */}
               {rank2Contestants.map((contestant: Contestant) => (
                 <div
@@ -208,13 +208,13 @@ export function LeaderboardDialog({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm">
+                    <span className="font-medium text-sm text-white">
                       {contestant.name}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">{contestant.votes} votes</span>
+                    <span className="text-sm text-white">{contestant.votes} votes</span>
                   </div>
                 </div>
               ))}
@@ -244,13 +244,13 @@ export function LeaderboardDialog({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-base">
+                    <span className="font-semibold text-base text-white">
                       {contestant.name}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium text-white">
                       {contestant.votes} votes
                     </span>
                   </div>
@@ -280,18 +280,18 @@ export function LeaderboardDialog({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm">
+                    <span className="font-medium text-sm text-white">
                       {contestant.name}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">{contestant.votes} votes</span>
+                    <span className="text-sm text-white">{contestant.votes} votes</span>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
             {/* Contestants Table */}

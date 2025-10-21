@@ -19,13 +19,8 @@ import { Search } from "@/components/ui/search";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BusinessStatusDialog } from "@/components/update-business-status";
 import { useReduxBusiness } from "@/hooks/useReduxBusiness";
-import type { BusinessUser } from "@/types/business"; // Update import
-import {
-  EyeIcon,
-  FilterIcon,
-  PenIcon,
-  TrashIcon,
-} from "lucide-react";
+import type { BusinessUser } from "@/types/business";
+import { EyeIcon, FilterIcon, PenIcon, TrashIcon } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -38,26 +33,32 @@ type UIBusiness = {
   business: string; // companyName
   owner: string; // firstName + lastName
   registrationDate: string; // You might need to calculate this
-  status: "pending" | "approved" | "suspended" | "cancelled"; // Map from isVerified/isActive
+  status: "PENDING" | "APPROVED" | "REJECTED";
   address: string;
   image?: string;
-  originalData: BusinessUser; // Keep original data for actions
+  originalData: BusinessUser;
+  isActive: string;
+  isVerified: string;
 };
 
 export function BusinessesPage() {
-  const [selectedBusiness, setSelectedBusiness] = useState<UIBusiness | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<UIBusiness | null>(
+    null
+  );
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<BusinessStatusTab>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatuses, setSelectedStatuses] = useState<UIBusiness["status"][]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<
+    UIBusiness["status"][]
+  >([]);
   const [hasFetchedInitialData, setHasFetchedInitialData] = useState(false);
 
-  const { 
-    businesses: businessData, 
-    loading, 
-    fetchBusinesses, 
-    hasData 
+  const {
+    businesses: businessData,
+    loading,
+    fetchBusinesses,
+    hasData,
   } = useReduxBusiness();
 
   useEffect(() => {
@@ -74,19 +75,16 @@ export function BusinessesPage() {
 
   const navigate = useNavigate();
 
-  
+  // In the mappedBusinesses useMemo, replace the status logic:
   const mappedBusinesses: UIBusiness[] = useMemo(() => {
     return businessData.map((business): UIBusiness => {
-      let status: UIBusiness["status"] = "pending";
-      if (business.isVerified && business.isActive) {
-        status = "approved";
-      } else if (!business.isActive) {
-        status = "suspended";
-      } else if (!business.isVerified) {
-        status = "pending";
-      }
+      // Use the businessAccount.status directly from API
+      let status: UIBusiness["status"] = business.businessAccount.status as
+        | "PENDING"
+        | "APPROVED"
+        | "REJECTED";
 
-      const registrationDate = business.businessAccount.verifiedAt 
+      const registrationDate = business.businessAccount.verifiedAt
         ? new Date(business.businessAccount.verifiedAt).toLocaleDateString()
         : "Not verified";
 
@@ -97,18 +95,22 @@ export function BusinessesPage() {
         registrationDate,
         status,
         address: business.businessAccount.address,
-        image: undefined, 
+        image: undefined,
         originalData: business,
+        // Add these if you need them separately
+        isActive: business.isActive ? "Active" : "Inactive",
+        isVerified: business.businessAccount.isVerified
+          ? "Verified"
+          : "Not Verified",
       };
     });
   }, [businessData]);
 
   // Available status options for filter
   const statusOptions: { value: UIBusiness["status"]; label: string }[] = [
-    { value: "pending", label: "Pending" },
-    { value: "approved", label: "Approved" },
-    { value: "suspended", label: "Suspended" },
-    { value: "cancelled", label: "Cancelled" },
+    { value: "PENDING", label: "Pending" },
+    { value: "APPROVED", label: "Approved" },
+    { value: "REJECTED", label: "Rejected" },
   ];
 
   // Filter businesses based on active tab, search query, and selected statuses
@@ -118,11 +120,11 @@ export function BusinessesPage() {
     // First apply tab filter
     switch (activeTab) {
       case "pending":
-        filtered = filtered.filter((business) => business.status === "pending");
+        filtered = filtered.filter((business) => business.status === "PENDING");
         break;
       case "active":
         filtered = filtered.filter(
-          (business) => business.status === "approved"
+          (business) => business.status === "APPROVED"
         );
         break;
       case "all":
@@ -177,7 +179,7 @@ export function BusinessesPage() {
     {
       title: "Active Businesses",
       value: mappedBusinesses
-        .filter((b) => b.status === "approved")
+        .filter((b) => b.status === "APPROVED")
         .length.toString(),
       change: {
         description: "of total businesses",
@@ -186,7 +188,7 @@ export function BusinessesPage() {
     {
       title: "Pending Applications",
       value: mappedBusinesses
-        .filter((b) => b.status === "pending")
+        .filter((b) => b.status === "PENDING")
         .length.toString(),
       change: {
         description: "Awaiting review",
@@ -211,24 +213,21 @@ export function BusinessesPage() {
 
   // FIX 6: Update handlers to work with actual API data
   const handleStatusUpdate = (
-    businessId: string,
-    newStatus: UIBusiness["status"]
-  ) => {
-    // Find the original business data
-    const originalBusiness = mappedBusinesses.find(b => b.id === businessId)?.originalData;
-    
-    if (originalBusiness) {
-      // Map UI status back to API fields
-      const updates = {
-        isVerified: newStatus === "approved",
-        isActive: newStatus !== "suspended",
-      };
+  businessId: string,
+  newStatus: UIBusiness["status"]
+) => {
+  const originalBusiness = mappedBusinesses.find(b => b.id === businessId)?.originalData;
+  
+  if (originalBusiness) {
+    const updates = {
+      status: newStatus, 
+      isVerified: newStatus === "APPROVED",
+      isActive: newStatus === "APPROVED",
+    };
 
-      // TODO: Call your updateBusiness thunk here
-      // updateBusiness({ id: businessId, businessData: updates });
-      console.log(`Updated business ${businessId} to status: ${newStatus}`, updates);
-    }
-  };
+    console.log(`Updated business ${businessId} to status: ${newStatus}`, updates);
+  }
+};
 
   const handleDeleteBusiness = (businessId: string) => {
     // TODO: Implement actual delete API call
@@ -282,27 +281,23 @@ export function BusinessesPage() {
       header: "Status ↓",
       cell: (value) => {
         const statusConfig = {
-          pending: {
+          PENDING: {
             label: "Pending",
             dotColor: "bg-yellow-500",
           },
-          approved: {
+          APPROVED: {
             label: "Approved",
             dotColor: "bg-green-500",
           },
-          cancelled: {
-            label: "Cancelled",
-            dotColor: "bg-red-500",
-          },
-          suspended: {
-            label: "Suspended",
+          REJECTED: {
+            label: "Rejected",
             dotColor: "bg-red-500",
           },
         };
 
         const config =
           statusConfig[value as keyof typeof statusConfig] ||
-          statusConfig.pending;
+          statusConfig.PENDING;
 
         return (
           <Badge
@@ -342,7 +337,6 @@ export function BusinessesPage() {
       onClick: handleDeleteClick,
     },
   ];
-
 
   return (
     <div className="min-h-screen">
@@ -452,8 +446,8 @@ export function BusinessesPage() {
               {/* Results Count */}
               <div className="px-6 mt-4">
                 <p className="text-sm text-muted-foreground">
-                  Showing {filteredBusinesses.length} of {mappedBusinesses.length}{" "}
-                  businesses
+                  Showing {filteredBusinesses.length} of{" "}
+                  {mappedBusinesses.length} businesses
                   {(selectedStatuses.length > 0 || searchQuery) &&
                     " (filtered)"}
                 </p>

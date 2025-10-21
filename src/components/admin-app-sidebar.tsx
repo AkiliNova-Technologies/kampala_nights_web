@@ -9,7 +9,7 @@ import {
   Megaphone,
   MessageCircleQuestionMark,
   SettingsIcon,
-  Shield,
+  Speaker,
   Users,
 } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
@@ -69,14 +69,14 @@ export function AdminAppSidebar({
         icon: Flame,
       },
       {
+        title: "Find your DJ",
+        url: "/admin/find-your-dj",
+        icon: Speaker,
+      },
+      {
         title: "Revenue",
         url: "/admin/revenue",
         icon: Landmark,
-      },
-      {
-        title: "Moderation",
-        url: "/admin/moderation",
-        icon: Shield,
       },
       {
         title: "Helpdesk",

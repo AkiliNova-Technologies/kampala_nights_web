@@ -311,7 +311,7 @@ export function RevenuePage() {
       key: "totalAmount",
       header: "Total Amount (UGX)",
       cell: (value: unknown) => (
-        <div className="text-right">
+        <div className="text-left">
           <span className="font-medium">{formatCurrency(value as number)}</span>
         </div>
       ),
@@ -321,7 +321,7 @@ export function RevenuePage() {
       key: "commission",
       header: "15% Commission (UGX)",
       cell: (value: unknown) => (
-        <div className="text-right">
+        <div className="text-left">
           <span className="font-medium">{formatCurrency(value as number)}</span>
         </div>
       ),

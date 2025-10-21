@@ -46,6 +46,9 @@ import BusinessEventsPageLayout from "./layouts/BusinessEventsPageLayout";
 import { BusinessCreateEventPage } from "./pages/business/BusinessCreateEvent";
 import { BusinessEditEventPage } from "./pages/business/BusinessEditEvent";
 import { BusinessViewEventPage } from "./pages/business/BusinessViewEvent";
+import { ViewReservationPage } from "./pages/business/ViewReservation";
+import ReservationsPageLayout from "./layouts/ReservationsPageLayout";
+import { FindYourDJPage } from "./pages/admin/FindYourDJ";
 
 function App() {
   return (
@@ -62,12 +65,18 @@ function App() {
             <Route index element={<BusinessHome />} />
             <Route path="events" element={<BusinessEventsPageLayout />}>
               <Route index element={<BusinessEventsPage />} />
-              <Route path="create-event" element={<BusinessCreateEventPage />} />
-              <Route path="edit-event" element={<BusinessEditEventPage />} />
-              <Route path="view-event" element={<BusinessViewEventPage />} />
+              <Route
+                path="create-event"
+                element={<BusinessCreateEventPage />}
+              />
+              <Route path=":id/edit" element={<BusinessEditEventPage />} />
+              <Route path=":id" element={<BusinessViewEventPage />} />
             </Route>
             <Route path="calendar" element={<CalendarPage />} />
-            <Route path="reservations" element={<ReservationsPage />} />
+            <Route path="reservations" element={<ReservationsPageLayout />}>
+              <Route index element={<ReservationsPage />} />
+              <Route path=":id/view" element={<ViewReservationPage />} />
+            </Route>
             <Route path="promotions" element={<PromotionsPage />} />
             <Route path="invoices" element={<InvoicePage />} />
             <Route path="gallery" element={<GalleryPage />} />
@@ -85,6 +94,7 @@ function App() {
               <Route path=":id" element={<EventDetailsPage />} />
             </Route>
             <Route path="hot-or-cold" element={<HotOrNotPage />} />
+            <Route path="find-your-dj" element={<FindYourDJPage />} />
             <Route path="moderation" element={<ModerationPage />} />
             <Route path="revenue" element={<RevenuePage />} />
             <Route path="settings" element={<SettingsPage />} />

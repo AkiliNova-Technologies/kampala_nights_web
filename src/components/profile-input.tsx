@@ -115,7 +115,7 @@ export function ProfileInput({
         disabled={(!isEditing && !isEditable) || disabled}
         readOnly={!isEditing}
         className={cn(
-          "transition-colors h-11",
+          "transition-colors h-11 border-0",
           (!isEditable || disabled) && "bg-card border-0",
           isEditing && "ring-1 ring-[#5014D0]",
         )}

@@ -49,7 +49,7 @@ export function InvoiceDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="min-w-3xl sm:max-w-md">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <DialogTitle className="text-lg font-semibold">
             Invoice Details

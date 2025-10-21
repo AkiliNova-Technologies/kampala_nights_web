@@ -25,7 +25,7 @@ interface BusinessStatusDialogProps {
   loading?: boolean; 
 }
 
-type BackendStatus = "pending" | "approve" | "reject";
+type BackendStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 type FrontendStatus = Business["status"];
 
@@ -36,7 +36,7 @@ export function BusinessStatusDialog({
   onStatusUpdate,
   loading,
 }: BusinessStatusDialogProps) {
-  const [selectedStatus, setSelectedStatus] = useState<BackendStatus>("approve");
+  const [selectedStatus, setSelectedStatus] = useState<BackendStatus>("APPROVED");
 
   useEffect(() => {
     if (business) {
@@ -47,20 +47,20 @@ export function BusinessStatusDialog({
 
   const mapFrontendToBackendStatus = (frontendStatus: FrontendStatus): BackendStatus => {
     const statusMap: Record<FrontendStatus, BackendStatus> = {
-      pending: "approve", 
-      approved: "approve", 
-      cancelled: "reject", 
-      suspended: "reject",
+      PENDING: "PENDING", 
+      APPROVED: "APPROVED", 
+      REJECTED: "REJECTED", 
+      // suspended: "reject",
     };
-    return statusMap[frontendStatus] || "approve";
+    return statusMap[frontendStatus] || "APPROVED";
   };
 
   // Map backend status to frontend status
   const mapBackendToFrontendStatus = (backendStatus: BackendStatus): FrontendStatus => {
     const statusMap: Record<BackendStatus, FrontendStatus> = {
-      pending: "pending",
-      approve: "approved",
-      reject: "cancelled", // or "suspended" depending on your business logic
+      PENDING: "PENDING",
+      APPROVED: "APPROVED",
+      REJECTED: "REJECTED", // or "suspended" depending on your business logic
     };
     return statusMap[backendStatus];
   };
@@ -75,15 +75,15 @@ export function BusinessStatusDialog({
   };
 
   const statusConfig = {
-    pending: {
+    PENDING: {
       label: "Pending",
       description: "This business is waiting approval to join platform"
     },
-    approve: {
+    APPROVED: {
       label: "Approve",
       description: "Approve this business to join the platform"
     },
-    reject: {
+    REJECTED: {
       label: "Reject",
       description: "Reject this business application"
     },
@@ -152,7 +152,7 @@ export function BusinessStatusDialog({
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {(["approve", "reject"] as const).map((status) => (
+                {(["APPROVED", "REJECTED"] as const).map((status) => (
                   <SelectItem key={status} value={status}>
                     <div className="flex flex-col">
                       <span className="font-medium">

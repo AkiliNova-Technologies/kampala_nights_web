@@ -23,85 +23,64 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useReduxEvents } from "@/hooks/useReduxEvents";
 
-// Backend Event interface based on your API response
-export interface BackendEvent {
+// UI Event interface based on your actual backend response
+interface UIEvent {
   id: string;
-  venueId: string;
   name: string;
   description: string;
   startDateTime: string;
   endDateTime: string;
   maxAttendees: number;
-  ticketPrice: number;
   eventType: string;
+  location: string;
+  latitude: number;
+  longitude: number;
   backgroundImageUrl?: string;
   coverImageUrl?: string;
-  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  status: "PENDING" | "APPROVED" | "REJECTED" | "COMPLETED" | "CANCELLED";
   isApproved: boolean;
-  approvedAt?: string;
-  approvedBy?: string;
   isActive: boolean;
+  isPaid: boolean;
+  allowReservations: boolean;
   createdAt: string;
-  updatedAt: string;
-  venue: {
+  eventTicketTypes: Array<{
     id: string;
-    businessAccountId: string;
     name: string;
-    description: string;
-    address: string;
-    type: string;
+    price: number;
+    quantity: number;
+    soldCount: number;
     isActive: boolean;
     createdAt: string;
-    updatedAt: string;
-    businessAccount: {
-      id: string;
-      baseUserId: string;
-      companyName: string;
-      businessType: string;
-      taxId?: string;
-      phone: string;
-      address: string;
-      status: string;
-      isVerified: boolean;
-      verifiedAt?: string;
-      rejectionReason?: string;
-      profileCompleted: boolean;
-      latitude: number;
-      longitude: number;
-      amenities: string;
-      baseUser: {
-        email: string;
-        firstName: string;
-        lastName: string;
-      };
-    };
-  };
+  }>;
+  eventReservationPricing: Array<{
+    id: string;
+    optionName: string;
+    price: number;
+    isActive: boolean;
+    createdAt: string;
+  }>;
   eventmedia: Array<{
     id: string;
-    eventId: string;
     type: "IMAGE" | "VIDEO";
     position: number;
-    storageKey: string;
     url: string;
-    width?: number;
-    height?: number;
-    durationSec?: number;
-    variants?: any;
+    storageKey: string;
+    width?: number | null;
+    height?: number | null;
+    durationSec?: number | null;
   }>;
-}
 
-// UI Event interface that extends the Backend event with additional UI properties
-interface UIEvent extends Omit<BackendEvent, "status"> {
-  // UI-specific status that matches your tab system
-  status: "active" | "pending" | "suspended" | "completed" | "cancelled";
-  // Additional UI fields
+  // UI-specific computed fields
   business: string;
   businessImage?: string;
   date: string;
   time: string;
-  location: string;
+  displayLocation: string;
   vibeScore: number;
   image?: string;
+  displayPrice: string;
+  displayAttendance: string;
+  displayRevenue: string;
   [key: string]: unknown;
 }
 
@@ -120,16 +99,8 @@ export function EventsPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<EventStatus[]>([]);
   const [hasFetchedInitialData, setHasFetchedInitialData] = useState(false);
 
-  const {
-    events,
-    loading,
-    fetchEvents,
-    approveEvent,
-    rejectEvent,
-    deleteEvent,
-    refreshEvents,
-    hasData,
-  } = useReduxEvents();
+  const { events, loading, fetchEvents, refreshEvents, hasData } =
+    useReduxEvents({mode: "admin"});
 
   useEffect(() => {
     if (!hasData && !hasFetchedInitialData && !loading) {
@@ -154,6 +125,8 @@ export function EventsPage() {
         return "suspended";
       case "CANCELLED":
         return "cancelled";
+      case "COMPLETED":
+        return "completed";
       default:
         return "completed";
     }
@@ -162,8 +135,6 @@ export function EventsPage() {
   // Transform Backend events to match UI interface
   const transformedEvents: UIEvent[] = useMemo(() => {
     return events.map((event) => {
-      const finalStatus = mapEventStatus(event.status, event.endDateTime);
-
       // Get the first image from eventmedia for the avatar
       const firstImage = event.eventmedia?.find(
         (media) => media.type === "IMAGE"
@@ -187,16 +158,55 @@ export function EventsPage() {
         hour12: true,
       });
 
+      // Calculate display values
+      const getDisplayPrice = () => {
+        if (!event.isPaid) return "Free";
+        if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+          const lowestPrice = Math.min(
+            ...event.eventTicketTypes.map((ticket) => ticket.price)
+          );
+          return `UGX ${lowestPrice.toLocaleString()}`;
+        }
+        return "Paid";
+      };
+
+      const getDisplayAttendance = () => {
+        if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+          const totalSold = event.eventTicketTypes.reduce(
+            (sum, ticket) => sum + ticket.soldCount,
+            0
+          );
+          return `${totalSold}/${event.maxAttendees}`;
+        }
+        return `0/${event.maxAttendees}`;
+      };
+
+      const getDisplayRevenue = () => {
+        if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+          const totalRevenue = event.eventTicketTypes.reduce(
+            (sum, ticket) => sum + ticket.price * ticket.soldCount,
+            0
+          );
+          return `UGX ${totalRevenue.toLocaleString()}`;
+        }
+        return "UGX 0";
+      };
+
       return {
+        // Original backend fields
         ...event,
-        business: event.venue.businessAccount.companyName,
+
+        // UI computed fields
+        business: "Event Business", // You might want to get this from your actual data
         date,
         time,
-        location: event.venue.address,
+        displayLocation: event.location,
         vibeScore: Math.floor(Math.random() * 30) + 70, // Random score for demo
-        status: finalStatus,
         image: imageUrl,
-        businessImage: "/api/placeholder/40/40", // You might want to add business images to your backend
+        businessImage: "/api/placeholder/40/40",
+        displayPrice: getDisplayPrice(),
+        displayAttendance: getDisplayAttendance(),
+        displayRevenue: getDisplayRevenue(),
       };
     });
   }, [events]);
@@ -217,16 +227,28 @@ export function EventsPage() {
     // Apply tab filter
     switch (activeTab) {
       case "active":
-        filtered = filtered.filter((event) => event.status === "active");
+        filtered = filtered.filter(
+          (event) =>
+            mapEventStatus(event.status, event.endDateTime) === "active"
+        );
         break;
       case "pending":
-        filtered = filtered.filter((event) => event.status === "pending");
+        filtered = filtered.filter(
+          (event) =>
+            mapEventStatus(event.status, event.endDateTime) === "pending"
+        );
         break;
       case "suspended":
-        filtered = filtered.filter((event) => event.status === "suspended");
+        filtered = filtered.filter(
+          (event) =>
+            mapEventStatus(event.status, event.endDateTime) === "suspended"
+        );
         break;
       case "past":
-        filtered = filtered.filter((event) => event.status === "completed");
+        filtered = filtered.filter(
+          (event) =>
+            mapEventStatus(event.status, event.endDateTime) === "completed"
+        );
         break;
       case "all":
       default:
@@ -237,7 +259,9 @@ export function EventsPage() {
     // Apply status filter if any statuses are selected
     if (selectedStatuses.length > 0) {
       filtered = filtered.filter((event) =>
-        selectedStatuses.includes(event.status)
+        selectedStatuses.includes(
+          mapEventStatus(event.status, event.endDateTime)
+        )
       );
     }
 
@@ -248,9 +272,8 @@ export function EventsPage() {
         (event) =>
           event.name.toLowerCase().includes(query) ||
           event.business.toLowerCase().includes(query) ||
-          event.location.toLowerCase().includes(query) ||
-          event.venue.name.toLowerCase().includes(query) ||
-          event.venue.businessAccount.companyName.toLowerCase().includes(query)
+          event.displayLocation.toLowerCase().includes(query) ||
+          event.eventType.toLowerCase().includes(query)
       );
     }
 
@@ -275,36 +298,6 @@ export function EventsPage() {
     fetchEvents({ page: 1, limit: 20, forceRefresh: true });
   };
 
-  const handleApproveEvent = async (eventId: string) => {
-    try {
-      await approveEvent(eventId);
-      // The events list will automatically refresh due to cache clearing
-    } catch (err) {
-      console.error("Failed to approve event:", err);
-    }
-  };
-
-  const handleRejectEvent = async (eventId: string) => {
-    const reason = prompt("Please enter rejection reason:");
-    if (reason) {
-      try {
-        await rejectEvent(eventId, reason);
-      } catch (err) {
-        console.error("Failed to reject event:", err);
-      }
-    }
-  };
-
-  const handleDeleteEvent = async (eventId: string) => {
-    if (window.confirm("Are you sure you want to delete this event?")) {
-      try {
-        await deleteEvent(eventId);
-      } catch (err) {
-        console.error("Failed to delete event:", err);
-      }
-    }
-  };
-
   // Calculate card statistics
   const eventCards: CardData[] = useMemo(
     () => [
@@ -320,7 +313,10 @@ export function EventsPage() {
       {
         title: "Active Events",
         value: transformedEvents
-          .filter((event) => event.status === "active")
+          .filter(
+            (event) =>
+              mapEventStatus(event.status, event.endDateTime) === "active"
+          )
           .length.toString(),
         change: {
           trend: "up",
@@ -331,7 +327,10 @@ export function EventsPage() {
       {
         title: "Pending Approval",
         value: transformedEvents
-          .filter((event) => event.status === "pending")
+          .filter(
+            (event) =>
+              mapEventStatus(event.status, event.endDateTime) === "pending"
+          )
           .length.toString(),
         change: {
           description: "Awaiting Review",
@@ -340,7 +339,10 @@ export function EventsPage() {
       {
         title: "Suspended",
         value: transformedEvents
-          .filter((event) => event.status === "suspended")
+          .filter(
+            (event) =>
+              mapEventStatus(event.status, event.endDateTime) === "suspended"
+          )
           .length.toString(),
         change: {
           description: "Events suspended",
@@ -349,7 +351,10 @@ export function EventsPage() {
       {
         title: "Past Events",
         value: transformedEvents
-          .filter((event) => event.status === "completed")
+          .filter(
+            (event) =>
+              mapEventStatus(event.status, event.endDateTime) === "completed"
+          )
           .length.toString(),
         change: {
           trend: "up",
@@ -414,16 +419,20 @@ export function EventsPage() {
       ),
     },
     {
-      key: "location",
+      key: "displayLocation",
       header: "Location",
-      cell: (_, row) => <span className="font-medium">{row.location}</span>,
+      cell: (_, row) => (
+        <div className="text-wrap max-w-2xs">
+          <span className="font-medium line-clamp-2">{row.displayLocation}</span>
+        </div>
+      ),
     },
     {
-      key: "ticketPrice",
+      key: "displayPrice",
       header: "Ticket Price",
       cell: (value) => (
         <div className="text-center">
-          <span className="font-medium">${value as number}</span>
+          <span className="font-medium">{value as string}</span>
         </div>
       ),
       align: "center",
@@ -441,7 +450,8 @@ export function EventsPage() {
     {
       key: "status",
       header: "Status ↓",
-      cell: (value, row) => {
+      cell: (_, row) => {
+        const uiStatus = mapEventStatus(row.status, row.endDateTime);
         const statusConfig = {
           active: {
             label: "Active",
@@ -465,11 +475,7 @@ export function EventsPage() {
           },
         };
 
-        const config =
-          statusConfig[value as EventStatus] || statusConfig.active;
-
-        // Add action buttons for pending events
-        const isPending = value === "pending";
+        const config = statusConfig[uiStatus] || statusConfig.active;
 
         return (
           <div className="flex flex-col items-center gap-2">
@@ -480,32 +486,6 @@ export function EventsPage() {
               <div className={`size-2 rounded-full ${config.dotColor}`} />
               {config.label}
             </Badge>
-            {isPending && (
-              <div className="flex gap-1 mt-1">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-6 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleApproveEvent(row.id);
-                  }}
-                >
-                  Approve
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-6 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRejectEvent(row.id);
-                  }}
-                >
-                  Reject
-                </Button>
-              </div>
-            )}
           </div>
         );
       },
@@ -522,13 +502,6 @@ export function EventsPage() {
       onClick: (event) => {
         console.log("View event details:", event);
         navigate(`/admin/events/${event.id}`);
-      },
-    },
-    {
-      type: "delete",
-      label: "Delete Event",
-      onClick: (event) => {
-        handleDeleteEvent(event.id);
       },
     },
   ];
@@ -656,16 +629,6 @@ export function EventsPage() {
                     </Button>
                   )}
                 </div>
-              </div>
-
-              {/* Results Count */}
-              <div className="px-6 mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {filteredEvents.length} of {events.length} events
-                  {(selectedStatuses.length > 0 || searchQuery) &&
-                    " (filtered)"}
-                  {loading && " - Loading..."}
-                </p>
               </div>
 
               <DataTable<UIEvent>

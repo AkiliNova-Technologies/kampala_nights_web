@@ -1,3 +1,4 @@
+// In your CapacityPricing component, update the interface and usage:
 import React from "react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -23,15 +24,19 @@ interface CapacityPricingProps {
     isPaidEvent?: boolean;
     tickets?: Ticket[];
   }) => void;
+  disabled?: boolean; // Changed from disable to disabled
 }
 
 const CapacityPricing: React.FC<CapacityPricingProps> = ({ 
   formData, 
-  onFormChange 
+  onFormChange,
+  disabled = false 
 }) => {
   const { maxAttendees, isPaidEvent, tickets } = formData;
 
   const addNewTicket = () => {
+    if (disabled) return;
+    
     const newTicket: Ticket = {
       id: Date.now().toString(),
       name: "New Ticket",
@@ -44,6 +49,8 @@ const CapacityPricing: React.FC<CapacityPricingProps> = ({
   };
 
   const updateTicket = (id: string, field: keyof Ticket, value: string | number) => {
+    if (disabled) return;
+    
     const updatedTickets = tickets.map((ticket) =>
       ticket.id === id ? { ...ticket, [field]: value } : ticket
     );
@@ -51,6 +58,8 @@ const CapacityPricing: React.FC<CapacityPricingProps> = ({
   };
 
   const deleteTicket = (id: string) => {
+    if (disabled) return;
+    
     if (tickets.length > 1) {
       const updatedTickets = tickets.filter((ticket) => ticket.id !== id);
       onFormChange({ tickets: updatedTickets });
@@ -80,6 +89,7 @@ const CapacityPricing: React.FC<CapacityPricingProps> = ({
             onChange={(e) => onFormChange({ maxAttendees: Number(e.target.value) })}
             className="h-11"
             min="1"
+            disabled={disabled}
           />
         </div>
 
@@ -89,6 +99,7 @@ const CapacityPricing: React.FC<CapacityPricingProps> = ({
               checked={isPaidEvent}
               onCheckedChange={(checked) => onFormChange({ isPaidEvent: checked })}
               id="paid-event"
+              disabled={disabled}
             />
             <Label htmlFor="paid-event">This is a paid event</Label>
           </div>
@@ -111,6 +122,7 @@ const CapacityPricing: React.FC<CapacityPricingProps> = ({
             onClick={addNewTicket}
             variant="secondary"
             className="h-11 bg-[#5041D0] hover:bg-[#5041D0]/80 text-white"
+            disabled={disabled}
           >
             <PlusIcon />
             Custom Event Ticket
@@ -145,6 +157,7 @@ const CapacityPricing: React.FC<CapacityPricingProps> = ({
                   onChange={(e) => updateTicket(ticket.id, "name", e.target.value)}
                   className="h-11 focus-visible:ring-1"
                   placeholder="Ticket name"
+                  disabled={disabled}
                 />
               </div>
 
@@ -157,6 +170,7 @@ const CapacityPricing: React.FC<CapacityPricingProps> = ({
                   className="h-11 focus-visible:ring-1"
                   placeholder="0"
                   min="0"
+                  disabled={disabled}
                 />
               </div>
 
@@ -170,13 +184,14 @@ const CapacityPricing: React.FC<CapacityPricingProps> = ({
                     className="h-11 focus-visible:ring-1"
                     placeholder="0"
                     min="0"
+                    disabled={disabled}
                   />
                   <Button
                     type="button"
                     variant={"secondary"}
                     className="h-10 w-10 ml-4 flex items-center justify-center bg-[#FDE9ED] hover:bg-[#FDE9ED]/80 rounded-sm"
                     onClick={() => deleteTicket(ticket.id)}
-                    disabled={tickets.length === 1}
+                    disabled={disabled || tickets.length === 1}
                   >
                     <Trash2Icon className="text-[#AD153A] size-5" />
                   </Button>

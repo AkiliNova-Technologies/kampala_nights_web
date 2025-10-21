@@ -16,16 +16,19 @@ import { Badge } from "@/components/ui/badge";
 import CapacityPricing from "@/components/capacity-pricing";
 import { ImageUploadField } from "@/components/image-upload-field";
 import { useState } from "react";
+import { LocationInput } from "@/components/ui/location-input";
+import { useReduxEvents } from "@/hooks/useReduxEvents";
+import { toast } from "sonner";
 
 interface EventFormData {
   eventTitle: string;
   category: string;
   description: string;
-
   eventDate: string;
   eventTime: string;
   location: string;
-
+  latitude: number;
+  longitude: number;
   maxAttendees: number;
   isPaidEvent: boolean;
   tickets: Array<{
@@ -34,13 +37,63 @@ interface EventFormData {
     price: number;
     quantity: number;
   }>;
-
-  backgroundImage: File | null;
-  posterImage: File | null;
+  backgroundImageUrl: string | null;
+  posterImageUrl: string | null;
 }
+
+// Helper function to convert time string to actual datetime
+const getDateTimeFromTimeSlot = (date: string, timeSlot: string): string => {
+  const dateObj = new Date(date);
+
+  switch (timeSlot) {
+    case "morning":
+      dateObj.setHours(10, 0, 0, 0);
+      break;
+    case "afternoon":
+      dateObj.setHours(14, 0, 0, 0);
+      break;
+    case "evening":
+      dateObj.setHours(18, 0, 0, 0);
+      break;
+    case "all-day":
+      dateObj.setHours(12, 0, 0, 0);
+      break;
+    default:
+      dateObj.setHours(12, 0, 0, 0);
+  }
+
+  return dateObj.toISOString();
+};
+
+// Helper function to calculate end time (default to 3 hours after start)
+const getEndDateTime = (startDateTime: string): string => {
+  const endDate = new Date(startDateTime);
+  endDate.setHours(endDate.getHours() + 3);
+  return endDate.toISOString();
+};
 
 export function BusinessCreateEventPage() {
   const navigate = useNavigate();
+  const { createEvent, loading: creatingEvent } = useReduxEvents({
+    mode: "business",
+  });
+
+  const [uploadingImages, setUploadingImages] = useState({
+    background: false,
+    poster: false,
+  });
+
+  const handlePlaceSelect = (place: {
+    address: string;
+    placeId: string;
+    lat?: number;
+    lng?: number;
+  }) => {
+    setFormData((prev) => ({
+      ...prev,
+      location: place.address,
+    }));
+  };
 
   const [formData, setFormData] = useState<EventFormData>({
     eventTitle: "",
@@ -49,6 +102,8 @@ export function BusinessCreateEventPage() {
     eventDate: "",
     eventTime: "",
     location: "",
+    latitude: 0,
+    longitude: 0,
     maxAttendees: 0,
     isPaidEvent: false,
     tickets: [
@@ -59,8 +114,8 @@ export function BusinessCreateEventPage() {
         quantity: 0,
       },
     ],
-    backgroundImage: null,
-    posterImage: null,
+    backgroundImageUrl: null,
+    posterImageUrl: null,
   });
 
   const handleInputChange = (
@@ -80,18 +135,46 @@ export function BusinessCreateEventPage() {
     }));
   };
 
-  const handleBackgroundImageChange = (file: File | null) => {
+  // Background Image Handlers
+  const handleBackgroundImageUpload = async (url: string | null) => {
     setFormData((prev) => ({
       ...prev,
-      backgroundImage: file,
+      backgroundImageUrl: url,
     }));
+    setUploadingImages((prev) => ({ ...prev, background: false }));
+    if (url) {
+      toast.success("Background image uploaded successfully!");
+    }
   };
 
-  const handlePosterImageChange = (file: File | null) => {
+  const handleBackgroundImageError = (error: string) => {
+    toast.error(`Background image upload failed: ${error}`);
+    setUploadingImages((prev) => ({ ...prev, background: false }));
+  };
+
+  const handleBackgroundImageStart = () => {
+    setUploadingImages((prev) => ({ ...prev, background: true }));
+  };
+
+  // Poster Image Handlers
+  const handlePosterImageUpload = async (url: string | null) => {
     setFormData((prev) => ({
       ...prev,
-      posterImage: file,
+      posterImageUrl: url,
     }));
+    setUploadingImages((prev) => ({ ...prev, poster: false }));
+    if (url) {
+      toast.success("Poster image uploaded successfully!");
+    }
+  };
+
+  const handlePosterImageError = (error: string) => {
+    toast.error(`Poster image upload failed: ${error}`);
+    setUploadingImages((prev) => ({ ...prev, poster: false }));
+  };
+
+  const handlePosterImageStart = () => {
+    setUploadingImages((prev) => ({ ...prev, poster: true }));
   };
 
   const handleCapacityPricingChange = (updates: {
@@ -110,69 +193,131 @@ export function BusinessCreateEventPage() {
     }));
   };
 
-  // Form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  // Form submission with API integration
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Basic validation
     if (!formData.eventTitle.trim()) {
-      alert("Please enter an event title");
+      toast.error("Please enter an event title");
       return;
     }
 
     if (!formData.category) {
-      alert("Please select a category");
+      toast.error("Please select a category");
       return;
     }
 
     if (!formData.description.trim()) {
-      alert("Please enter a description");
+      toast.error("Please enter a description");
       return;
     }
 
     if (!formData.eventDate) {
-      alert("Please select an event date");
+      toast.error("Please select an event date");
       return;
     }
 
     if (!formData.eventTime) {
-      alert("Please select an event time");
+      toast.error("Please select an event time");
       return;
     }
 
     if (!formData.location.trim()) {
-      alert("Please enter a location");
+      toast.error("Please enter a location");
       return;
     }
 
     if (formData.maxAttendees <= 0) {
-      alert("Please enter a valid number of maximum attendees");
+      toast.error("Please enter a valid number of maximum attendees");
       return;
     }
 
-    // Log all form data (replace with your API call)
-    console.log("Form Data:", formData);
+    // Validate tickets if it's a paid event
+    if (formData.isPaidEvent) {
+      const invalidTickets = formData.tickets.filter(
+        (ticket) =>
+          !ticket.name.trim() || ticket.price <= 0 || ticket.quantity <= 0
+      );
 
-    // Here you would typically send the data to your backend
-    // Example API call:
-    // createEvent(formData).then(() => {
-    //   navigate('/events');
-    // });
+      if (invalidTickets.length > 0) {
+        toast.error("Please fill in all ticket details correctly");
+        return;
+      }
+    }
 
-    // For now, just log and show success
-    alert("Event created successfully!");
-    console.log("Complete form data:", JSON.stringify(formData, null, 2));
+    // Validate images
+    if (!formData.backgroundImageUrl) {
+      toast.error("Please upload a background image");
+      return;
+    }
+
+    if (!formData.posterImageUrl) {
+      toast.error("Please upload a poster image");
+      return;
+    }
+
+    try {
+      // Prepare data for API
+      const startDateTime = getDateTimeFromTimeSlot(
+        formData.eventDate,
+        formData.eventTime
+      );
+      const endDateTime = getEndDateTime(startDateTime);
+
+      const eventData = {
+        name: formData.eventTitle,
+        description: formData.description,
+        startDateTime,
+        endDateTime,
+        maxAttendees: formData.maxAttendees,
+        eventType: formData.category,
+        location: formData.location,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        backgroundImageUrl: formData.backgroundImageUrl,
+        coverImageUrl: formData.posterImageUrl,
+        isPaid: formData.isPaidEvent,
+        allowReservations: false,
+        ticketTypes: formData.isPaidEvent
+          ? formData.tickets.map((ticket) => ({
+              name: ticket.name,
+              price: ticket.price,
+              quantity: ticket.quantity,
+            }))
+          : [],
+        reservationPricing: [],
+        media: [],
+      };
+
+      console.log("Creating event with data:", eventData);
+
+      // Call the Redux action and check the result properly
+      const result = await createEvent(eventData);
+
+      // Check if the action was fulfilled by examining the result
+      if (result.meta.requestStatus === "fulfilled") {
+        toast.success(
+          "Event created successfully! It will be reviewed by admin."
+        );
+        navigate("/business/events");
+      } else {
+        throw new Error((result.payload as string) || "Failed to create event");
+      }
+    } catch (error: any) {
+      console.error("Failed to create event:", error);
+      toast.error(error.message || "Failed to create event. Please try again.");
+    }
   };
 
   const handleCancel = () => {
-    // Check if there's any data entered
-    const hasData = 
+    const hasData =
       formData.eventTitle.trim() !== "" ||
       formData.description.trim() !== "" ||
       formData.location.trim() !== "" ||
       formData.maxAttendees > 0 ||
-      formData.backgroundImage !== null ||
-      formData.posterImage !== null;
+      formData.backgroundImageUrl !== null ||
+      formData.posterImageUrl !== null;
 
     if (hasData) {
       if (
@@ -187,6 +332,9 @@ export function BusinessCreateEventPage() {
     }
   };
 
+  const isFormSubmittable =
+    !creatingEvent && !uploadingImages.background && !uploadingImages.poster;
+
   return (
     <div className="min-h-screen">
       <SiteHeader />
@@ -199,6 +347,7 @@ export function BusinessCreateEventPage() {
                   type="button"
                   variant={"secondary"}
                   onClick={() => navigate(-1)}
+                  disabled={!isFormSubmittable}
                 >
                   <ArrowLeft />
                 </Button>
@@ -239,6 +388,7 @@ export function BusinessCreateEventPage() {
                       }
                       className="h-11"
                       required
+                      disabled={!isFormSubmittable}
                     />
                   </div>
 
@@ -254,17 +404,18 @@ export function BusinessCreateEventPage() {
                       onValueChange={(value) =>
                         handleSelectChange("category", value)
                       }
+                      disabled={!isFormSubmittable}
                     >
                       <SelectTrigger className="w-full min-h-11">
                         <SelectValue placeholder="Select Category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="music">Music</SelectItem>
-                        <SelectItem value="sports">Sports</SelectItem>
-                        <SelectItem value="food">Food & Drink</SelectItem>
-                        <SelectItem value="arts">Arts & Culture</SelectItem>
-                        <SelectItem value="business">Business</SelectItem>
-                        <SelectItem value="technology">Technology</SelectItem>
+                        <SelectItem value="party">Party</SelectItem>
+                        <SelectItem value="conference">Conference</SelectItem>
+                        <SelectItem value="wedding">Wedding</SelectItem>
+                        <SelectItem value="concert">Concert</SelectItem>
+                        <SelectItem value="workshop">Workshop</SelectItem>
+                        <SelectItem value="networking">Networking</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -286,6 +437,7 @@ export function BusinessCreateEventPage() {
                       handleInputChange("description", e.target.value)
                     }
                     required
+                    disabled={!isFormSubmittable}
                   />
                 </div>
               </div>
@@ -317,6 +469,7 @@ export function BusinessCreateEventPage() {
                     }
                     className="h-11"
                     required
+                    disabled={!isFormSubmittable}
                   />
                 </div>
 
@@ -327,22 +480,17 @@ export function BusinessCreateEventPage() {
                   >
                     Event Time
                   </Label>
-                  <Select
+                  <Input
+                    id="event-time"
+                    type="time"
                     value={formData.eventTime}
-                    onValueChange={(value) =>
-                      handleSelectChange("eventTime", value)
+                    onChange={(e) =>
+                      handleInputChange("eventTime", e.target.value)
                     }
-                  >
-                    <SelectTrigger className="h-11 min-h-11 w-full">
-                      <SelectValue placeholder="Select Time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="morning">Morning</SelectItem>
-                      <SelectItem value="afternoon">Afternoon</SelectItem>
-                      <SelectItem value="evening">Evening</SelectItem>
-                      <SelectItem value="all-day">All Day</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    className="h-11"
+                    required
+                    disabled={!isFormSubmittable}
+                  />
                 </div>
               </div>
               <div>
@@ -352,15 +500,17 @@ export function BusinessCreateEventPage() {
                 >
                   Location
                 </Label>
-                <Input
+                <LocationInput
                   id="location"
-                  placeholder="Enter event location"
+                  icon={<MapPin className="size-5" />}
                   value={formData.location}
-                  onChange={(e) =>
-                    handleInputChange("location", e.target.value)
-                  }
+                  onChange={(value) => handleInputChange("location", value)}
+                  onPlaceSelect={handlePlaceSelect}
+                  placeholder="Enter event location"
+                  country="ug"
                   className="w-full h-11"
                   required
+                  disabled={!isFormSubmittable}
                 />
               </div>
             </div>
@@ -373,6 +523,7 @@ export function BusinessCreateEventPage() {
                 tickets: formData.tickets,
               }}
               onFormChange={handleCapacityPricingChange}
+              disabled={!isFormSubmittable}
             />
 
             {/* Event Images Section */}
@@ -392,8 +543,10 @@ export function BusinessCreateEventPage() {
                     description="Event background image. Used for event banners and hero sections."
                     recommendedSize="1920×1080px"
                     formats="JPEG or PNG"
-                    maxSize="10MB"
-                    onImageChange={handleBackgroundImageChange}
+                    maxSize={10}
+                    onImageUpload={handleBackgroundImageUpload}
+                    onUploadError={handleBackgroundImageError}
+                    onUploadStart={handleBackgroundImageStart}
                   />
                 </div>
 
@@ -404,8 +557,10 @@ export function BusinessCreateEventPage() {
                     description="Event poster for cards and listings."
                     recommendedSize="400×300px"
                     formats="JPG, PNG, WebP"
-                    maxSize="10MB"
-                    onImageChange={handlePosterImageChange}
+                    maxSize={10}
+                    onImageUpload={handlePosterImageUpload}
+                    onUploadError={handlePosterImageError}
+                    onUploadStart={handlePosterImageStart}
                   />
                 </div>
               </div>
@@ -418,6 +573,7 @@ export function BusinessCreateEventPage() {
                 variant="outline"
                 className="h-11 flex-1"
                 onClick={handleCancel}
+                disabled={!isFormSubmittable}
               >
                 Cancel
               </Button>
@@ -425,8 +581,16 @@ export function BusinessCreateEventPage() {
                 type="submit"
                 variant={"secondary"}
                 className="h-11 bg-[#5041D0] flex-1 text-white hover:bg-[#5041D0]/90"
+                disabled={!isFormSubmittable}
               >
-                Create Event
+                {creatingEvent ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creating Event...
+                  </>
+                ) : (
+                  "Create Event"
+                )}
               </Button>
             </div>
           </div>

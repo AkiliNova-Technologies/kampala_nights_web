@@ -30,6 +30,7 @@ interface EventCardsProps {
   onStatusFilter?: (status: string) => void;
   onCategoryFilter?: (category: string) => void;
   onEditEvent?: (event: Event) => void;
+  onViewEvent?: (event: Event) => void;
   onDeleteEvent?: (event: Event) => void;
   searchValue?: string;
   selectedStatus?: string;
@@ -42,6 +43,7 @@ const EventCards: React.FC<EventCardsProps> = ({
   layout = "grid",
   onLayoutChange,
   onEditEvent,
+  onViewEvent,
   onDeleteEvent,
   searchValue = "",
   selectedStatus = "all",
@@ -71,12 +73,20 @@ const EventCards: React.FC<EventCardsProps> = ({
     } else {
       // Default behavior - navigate to edit page
       console.log(`Navigating to edit page for event: ${event.id}`);
-      // You can replace this with your actual navigation logic
-      // window.location.href = `/events/edit/${event.id}`;
     }
   };
 
-  // Handle delete event - REMOVED window.confirm
+  // Handle view event
+  const handleViewEvent = (event: Event) => {
+    if (onViewEvent) {
+      onViewEvent(event);
+    } else {
+      // Default behavior - navigate to view page
+      console.log(`Navigating to view page for event: ${event.id}`);
+    }
+  };
+
+  // Handle delete event
   const handleDeleteEvent = (event: Event) => {
     if (onDeleteEvent) {
       onDeleteEvent(event);
@@ -162,6 +172,7 @@ const EventCards: React.FC<EventCardsProps> = ({
             event={event}
             layout={layout}
             onEditEvent={handleEditEvent}
+            onViewEvent={handleViewEvent}
             onDeleteEvent={handleDeleteEvent}
           />
         ))}
@@ -208,11 +219,12 @@ const EventCards: React.FC<EventCardsProps> = ({
   );
 };
 
-// Individual Event Card Component (keep this part the same)
+// Individual Event Card Component
 interface EventCardProps {
   event: Event;
   layout: "grid" | "list";
   onEditEvent?: (event: Event) => void;
+  onViewEvent?: (event: Event) => void;
   onDeleteEvent?: (event: Event) => void;
 }
 
@@ -220,29 +232,93 @@ const EventCard: React.FC<EventCardProps> = ({
   event,
   layout,
   onEditEvent,
+  onViewEvent,
   onDeleteEvent,
 }) => {
   const navigate = useNavigate();
   const isGrid = layout === "grid";
 
+  // Helper functions to format data for display
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  // Get display price from eventTicketTypes
+  const getDisplayPrice = (): string => {
+    if (!event.isPaid) return "Free";
+    if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+      const lowestPrice = Math.min(...event.eventTicketTypes.map(ticket => ticket.price));
+      return `UGX ${lowestPrice.toLocaleString()}`;
+    }
+    return "Paid";
+  };
+
+  // Get display attendance from ticket sales
+  const getDisplayAttendance = (): string => {
+    if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+      const totalSold = event.eventTicketTypes.reduce((sum, ticket) => sum + ticket.soldCount, 0);
+      return `${totalSold} attendees`;
+    }
+    return "0 attendees";
+  };
+
+  // Get image URL from event media
+  const getImageUrl = (): string => {
+    const firstImage = event.eventmedia?.find((media) => media.type === "IMAGE");
+    return firstImage?.url || event.coverImageUrl || event.backgroundImageUrl || "";
+  };
+
+  // Handle view event click
+  const handleViewEvent = () => {
+    if (onViewEvent) {
+      onViewEvent(event);
+    } else {
+      // Fallback navigation
+      navigate(`/business/events/${event.id}`);
+    }
+  };
+
+  // Handle card click for grid layout (entire card is clickable)
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only trigger if the click wasn't on a button or dropdown
+    if (!(e.target as HTMLElement).closest('button, [role="button"]')) {
+      handleViewEvent();
+    }
+  };
+
   return (
     <div
       className={cn(
-        "border border-input bg-card rounded-lg overflow-hidden transition-all hover:shadow-md relative",
+        "border border-input bg-card rounded-lg overflow-hidden transition-all hover:shadow-md relative cursor-pointer",
         isGrid ? "flex flex-col" : "flex flex-row"
       )}
+      onClick={isGrid ? handleCardClick : undefined}
     >
       {/* Event Image */}
       <div
         className={cn(
           "bg-background relative",
-          isGrid ? "h-48" : "w-78 flex-shrink-0"
+          isGrid ? "h-58" : "w-78 flex-shrink-0"
         )}
       >
-        {event.imageUrl ? (
+        {getImageUrl() ? (
           <img
-            src={event.imageUrl}
-            alt={event.title}
+            src={getImageUrl()}
+            alt={event.name}
             className={cn(
               "w-full h-full object-cover",
               isGrid ? "" : "w-full h-48 object-cover"
@@ -256,11 +332,15 @@ const EventCard: React.FC<EventCardProps> = ({
         <Badge
           className={cn(
             "inline-flex px-2 py-1 items-center text-xs font-medium absolute top-2 right-2",
-            event.status === "Pending"
+            event.status === "PENDING"
               ? "bg-yellow-100 text-yellow-800"
-              : event.status === "Approved"
+              : event.status === "APPROVED"
               ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
+              : event.status === "REJECTED"
+              ? "bg-red-100 text-red-800"
+              : event.status === "COMPLETED"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
           )}
         >
           {event.status}
@@ -272,21 +352,28 @@ const EventCard: React.FC<EventCardProps> = ({
               <Button
                 variant={"secondary"}
                 className="bg-transparent hover:bg-[#5041D0]/70 absolute bottom-2 right-2 h-8 w-8"
+                onClick={(e) => e.stopPropagation()} // Prevent card click when clicking menu
               >
                 <EllipsisVertical className="size-5 text-white" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem
-                onClick={() => navigate(`/business/events/view-event`)}
-              >
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleViewEvent}>
                 View Event
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEditEvent?.(event)}>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditEvent?.(event);
+                }}
+              >
                 Edit Event
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => onDeleteEvent?.(event)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteEvent?.(event);
+                }}
                 className="text-red-600 focus:text-red-600"
               >
                 Delete Event
@@ -301,26 +388,29 @@ const EventCard: React.FC<EventCardProps> = ({
       {/* Event Content */}
       <div
         className={cn(
-          "flex-1 p-4",
+          "flex-1 px-6 py-4",
           isGrid ? "" : "flex flex-col justify-between"
         )}
       >
         <div>
           {/* Header */}
           <div className="flex flex-row items-start justify-between mb-2">
-            <h3 className="font-semibold text-lg text-[#5041D0] leading-tight pr-2">
-              {event.title}
+            <h3 
+              className="font-semibold text-lg text-[#5041D0] leading-tight pr-2 cursor-pointer hover:underline"
+              onClick={!isGrid ? handleViewEvent : undefined}
+            >
+              {event.name}
             </h3>
             <div className="flex flex-row gap-5 items-center">
               <Badge
                 className={cn(
                   "px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0",
-                  event.price === "Free"
+                  !event.isPaid
                     ? "bg-green-100 text-green-800"
                     : "bg-blue-100 text-blue-800"
                 )}
               >
-                {event.price}
+                {getDisplayPrice()}
               </Badge>
               {isGrid ? (
                 <></>
@@ -335,6 +425,9 @@ const EventCard: React.FC<EventCardProps> = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={handleViewEvent}>
+                      View Event
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onEditEvent?.(event)}>
                       Edit Event
                     </DropdownMenuItem>
@@ -366,7 +459,7 @@ const EventCard: React.FC<EventCardProps> = ({
             <div className="flex items-center text-muted-foreground">
               <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>
-                {event.date} at {event.time}
+                {formatDate(event.startDateTime)} at {formatTime(event.startDateTime)}
               </span>
             </div>
             <div className="flex items-center text-muted-foreground">
@@ -375,17 +468,14 @@ const EventCard: React.FC<EventCardProps> = ({
             </div>
             <div className="flex items-center text-muted-foreground">
               <Users className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span>{event.attendees} attendees</span>
+              <span>{getDisplayAttendance()}</span>
             </div>
           </div>
         </div>
-
-        {/* Status Badge */}
-        <div className="mt-3 pt-3"></div>
       </div>
     </div>
   );
 };
 
 export { EventCards };
-export type { Event };
+export type { EventCardsProps };

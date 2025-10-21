@@ -3,7 +3,7 @@ export interface Business {
   business: string;
   owner: string;
   registrationDate: string;
-  status: "pending" | "approved" | "cancelled" | "suspended";
+  status: "PENDING" | "APPROVED" | "REJECTED";
   address?: string;
   image?: string;
   [key: string]: unknown;

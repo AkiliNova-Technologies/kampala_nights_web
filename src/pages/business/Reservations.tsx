@@ -1,9 +1,7 @@
-import {
-  DataTable,
-  type TableAction,
-  type TableField,
-} from "@/components/data-table";
-
+// pages/reservations-page.tsx
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { DataTable, type TableAction, type TableField } from "@/components/data-table";
 import { SectionCards, type CardData } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,124 +15,32 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search } from "@/components/ui/search";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type {
-  Reservation,
-  ReservationStatus,
-  ReservationTab,
-} from "@/types/reservation";
+import type { Reservation, ReservationStatus, ReservationTab } from "@/types/reservation";
+import { useReservations } from "@/hooks/useReservations";
 
 import { EyeIcon, FilterIcon } from "lucide-react";
-import { useState, useMemo } from "react";
 
 export function ReservationsPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ReservationTab>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatuses, setSelectedStatuses] = useState<ReservationStatus[]>(
-    []
-  );
+  const [selectedStatuses, setSelectedStatuses] = useState<ReservationStatus[]>([]);
 
-  const [reservationData] = useState<Reservation[]>([
-    {
-      id: 1,
-      customer: "Nakato Gloria",
-      phone: "+256 700 123 456",
-      event: "Saturday Night Vibes",
-      amount: 150000,
-      dateTime: "Oct, 25, 2025 20:00",
-      status: "attended",
-    },
-    {
-      id: 2,
-      customer: "Kato Brian",
-      phone: "+256 700 234 567",
-      event: "Wine & Rhymes Night",
-      amount: 387000,
-      dateTime: "Oct, 25, 2025 20:00",
-      status: "paid",
-    },
-    {
-      id: 3,
-      customer: "Nalubwama Sheila",
-      phone: "+256 700 345 678",
-      event: "Amapiano Kasiki",
-      amount: 500000,
-      dateTime: "Oct, 29, 2025 22:00",
-      status: "paid",
-    },
-    {
-      id: 4,
-      customer: "Tumusilme Alex",
-      phone: "+256 700 456 789",
-      event: "Rooftop Sundowner",
-      amount: 156000,
-      dateTime: "Oct, 25, 2025 20:00",
-      status: "cancelled",
-    },
-    {
-      id: 5,
-      customer: "Mugisha David",
-      phone: "+256 700 567 890",
-      event: "Nile Reggae Festival",
-      amount: 275000,
-      dateTime: "Oct, 25, 2025 20:00",
-      status: "cancelled",
-    },
-  ]);
+  const {
+    useFilteredReservations,
+    getReservationStats
+  } = useReservations();
+
+  const filteredReservations = useFilteredReservations(activeTab, searchQuery, selectedStatuses);
+  const stats = getReservationStats();
 
   // Available status options for filter
   const statusOptions: { value: ReservationStatus; label: string }[] = [
     { value: "attended", label: "Attended" },
     { value: "paid", label: "Paid" },
     { value: "cancelled", label: "Cancelled" },
+    { value: "pending", label: "Pending" },
   ];
-
-  // Filter reservations based on active tab, search query, and selected statuses
-  const filteredReservations = useMemo(() => {
-    let filtered = reservationData;
-
-    // Apply tab filter
-    switch (activeTab) {
-      case "attended":
-        filtered = filtered.filter(
-          (reservation) => reservation.status === "attended"
-        );
-        break;
-      case "paid":
-        filtered = filtered.filter(
-          (reservation) => reservation.status === "paid"
-        );
-        break;
-      case "cancelled":
-        filtered = filtered.filter(
-          (reservation) => reservation.status === "cancelled"
-        );
-        break;
-      case "all":
-      default:
-        // No additional filtering for "all" tab
-        break;
-    }
-
-    // Apply status filter if any statuses are selected
-    if (selectedStatuses.length > 0) {
-      filtered = filtered.filter((reservation) =>
-        selectedStatuses.includes(reservation.status)
-      );
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(
-        (reservation) =>
-          reservation.customer.toLowerCase().includes(query) ||
-          reservation.event.toLowerCase().includes(query) ||
-          reservation.phone.toLowerCase().includes(query)
-      );
-    }
-
-    return filtered;
-  }, [reservationData, activeTab, selectedStatuses, searchQuery]);
 
   const handleStatusFilterChange = (status: ReservationStatus) => {
     setSelectedStatuses((prev) =>
@@ -149,35 +55,47 @@ export function ReservationsPage() {
     setSearchQuery("");
   };
 
+  const formatMoneyShort = (amount: number): string => {
+    if (amount >= 1_000_000) {
+      return `${(amount / 1_000_000).toFixed(amount % 1_000_000 === 0 ? 0 : 2)}M`;
+    }
+    if (amount >= 1_000) {
+      return `${(amount / 1_000).toFixed(amount % 1_000 === 0 ? 0 : 2)}K`;
+    }
+    return amount.toString();
+  };
+
   const reservationCards: CardData[] = [
     {
       title: "Total Reservations",
-      value: "64",
+      value: stats.total.toString(),
       change: {
         trend: "up",
-        value: "20%",
+        value: "12%",
         description: "from last month",
       },
     },
     {
-      title: "Total Check Ins",
-      value: "34",
+      title: "Total Revenue",
+      value: `UGX ${formatMoneyShort(stats.totalRevenue)}`,
       change: {
-        description: "Check-Ins via app",
+        trend: "up",
+        value: "18%",
+        description: "from last month",
       },
     },
     {
       title: "Attended",
-      value: "30",
+      value: stats.attended.toString(),
       change: {
-        description: "Headcount across events",
+        description: `${stats.attendanceRate.toFixed(1)}% attendance rate`,
       },
     },
     {
-      title: "Attendance Rate",
-      value: "50%",
+      title: "Pending",
+      value: stats.pending.toString(),
       change: {
-        description: "From all events",
+        description: "Awaiting payment or confirmation",
       },
     },
   ];
@@ -191,7 +109,7 @@ export function ReservationsPage() {
   };
 
   const formatAmount = (amount: number): string => {
-    return amount.toLocaleString("en-US");
+    return `UGX ${amount.toLocaleString("en-US")}`;
   };
 
   const reservationFields: TableField<Reservation>[] = [
@@ -220,9 +138,17 @@ export function ReservationsPage() {
     },
     {
       key: "amount",
-      header: "Amount (UGX)",
+      header: "Amount",
       cell: (value) => (
         <span className="font-medium">{formatAmount(value as number)}</span>
+      ),
+      align: "right",
+    },
+    {
+      key: "guests",
+      header: "Guests",
+      cell: (value) => (
+        <span className="font-medium">{value as number}</span>
       ),
       align: "right",
     },
@@ -239,19 +165,31 @@ export function ReservationsPage() {
           attended: {
             label: "Attended",
             dotColor: "bg-green-500",
+            textColor: "text-green-700",
+            bgColor: "bg-green-50"
           },
           paid: {
             label: "Paid",
             dotColor: "bg-blue-500",
+            textColor: "text-blue-700",
+            bgColor: "bg-blue-50"
           },
           cancelled: {
             label: "Cancelled",
             dotColor: "bg-red-500",
+            textColor: "text-red-700",
+            bgColor: "bg-red-50"
+          },
+          pending: {
+            label: "Pending",
+            dotColor: "bg-yellow-500",
+            textColor: "text-yellow-700",
+            bgColor: "bg-yellow-50"
           },
         };
 
         const config =
-          statusConfig[value as keyof typeof statusConfig] || statusConfig.paid;
+          statusConfig[value as keyof typeof statusConfig] || statusConfig.pending;
 
         return (
           <Badge
@@ -274,15 +212,15 @@ export function ReservationsPage() {
       label: "View Details",
       icon: <EyeIcon className="size-5" />,
       onClick: (reservation) => {
-        console.log("View reservation details:", reservation);
-        // Navigate to reservation details page
+        navigate(`/business/reservations/${reservation.id}/view`);
       },
     },
   ];
 
+
   return (
     <div className="min-h-screen">
-      <SiteHeader />
+      <SiteHeader label="Reservations Dashboard"/>
       <main className="flex-1">
         <div className="space-y-6 p-6">
           <SectionCards cards={reservationCards} layout="1x4" />
@@ -296,7 +234,7 @@ export function ReservationsPage() {
                 onValueChange={(value) => setActiveTab(value as ReservationTab)}
                 className="px-6 w-full bg-transparent rounded-none"
               >
-                <TabsList className="grid w-full max-w-full grid-cols-4 rounded-none p-0 bg-transparent border-b">
+                <TabsList className="grid w-full max-w-full grid-cols-5 rounded-none p-0 bg-transparent border-b">
                   <TabsTrigger
                     className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent"
                     value="all"
@@ -321,19 +259,26 @@ export function ReservationsPage() {
                   >
                     Cancelled
                   </TabsTrigger>
+                  <TabsTrigger
+                    className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent"
+                    value="pending"
+                  >
+                    Pending
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all" className="mt-0"></TabsContent>
                 <TabsContent value="attended" className="mt-0"></TabsContent>
                 <TabsContent value="paid" className="mt-0"></TabsContent>
                 <TabsContent value="cancelled" className="mt-0"></TabsContent>
+                <TabsContent value="pending" className="mt-0"></TabsContent>
               </Tabs>
 
               {/* Search and Filter Section */}
               <div className="px-6 mt-6 flex flex-col sm:flex-row gap-12 items-start sm:items-center justify-between">
                 <div className="w-full">
                   <Search
-                    placeholder="Search by events, or name..."
+                    placeholder="Search by events, name, phone, or email..."
                     value={searchQuery}
                     onSearchChange={setSearchQuery}
                     className="rounded-full"
@@ -385,16 +330,6 @@ export function ReservationsPage() {
                 </div>
               </div>
 
-              {/* Results Count */}
-              <div className="px-6 mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {filteredReservations.length} of{" "}
-                  {reservationData.length} reservations
-                  {(selectedStatuses.length > 0 || searchQuery) &&
-                    " (filtered)"}
-                </p>
-              </div>
-
               <DataTable<Reservation>
                 data={filteredReservations}
                 fields={reservationFields}
@@ -402,9 +337,6 @@ export function ReservationsPage() {
                 enableSelection={true}
                 enablePagination={true}
                 pageSize={5}
-                onRowClick={(reservation) => {
-                  console.log("Reservation clicked:", reservation);
-                }}
               />
             </div>
           </div>

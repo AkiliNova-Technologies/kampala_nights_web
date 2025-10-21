@@ -21,7 +21,6 @@ export function ViewReservationPage() {
   const navigate = useNavigate();
   const { getReservationById } = useReservations();
   const [reservation, setReservation] = useState<Reservation | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Simulate API call delay
@@ -31,7 +30,7 @@ export function ViewReservationPage() {
         const reservationData = getReservationById(reservationId);
         setReservation(reservationData || null);
       }
-      setLoading(false);
+      // setLoading(false);
     }, 500);
 
     return () => clearTimeout(timer);

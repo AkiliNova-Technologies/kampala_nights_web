@@ -78,13 +78,13 @@ const getEndDateTime = (startDateTime: string): string => {
 };
 
 const getDateFromISO = (isoString: string): string => {
-  return new Date(isoString).toISOString().split('T')[0];
+  return new Date(isoString).toISOString().split("T")[0];
 };
 
 const getTimeSlotFromISO = (isoString: string): string => {
   const date = new Date(isoString);
   const hours = date.getHours();
-  
+
   if (hours >= 5 && hours < 12) return "morning";
   if (hours >= 12 && hours < 17) return "afternoon";
   if (hours >= 17 && hours < 22) return "evening";
@@ -94,7 +94,11 @@ const getTimeSlotFromISO = (isoString: string): string => {
 export function BusinessEditEventPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { currentEvent, fetchBusinessEventById, updateBusinessEvent, loading } = useReduxEvents({ mode: 'business' });
+  const { currentEvent, fetchBusinessEventById, updateBusinessEvent, loading } =
+    useReduxEvents({ mode: "business" });
+
+    console.log("Event Details: ", currentEvent);
+    
 
   const [formData, setFormData] = useState<EventFormData>({
     name: "",
@@ -139,12 +143,13 @@ export function BusinessEditEventPage() {
         maxAttendees: currentEvent.maxAttendees || 0,
         isPaid: currentEvent.isPaid || false,
         allowReservations: currentEvent.allowReservations || false,
-        ticketTypes: currentEvent.eventTicketTypes?.map(ticket => ({
-          id: ticket.id,
-          name: ticket.name,
-          price: ticket.price,
-          quantity: ticket.quantity,
-        })) || [],
+        ticketTypes:
+          currentEvent.eventTicketTypes?.map((ticket) => ({
+            id: ticket.id,
+            name: ticket.name,
+            price: ticket.price,
+            quantity: ticket.quantity,
+          })) || [],
         backgroundImageUrl: currentEvent.backgroundImageUrl || null,
         coverImageUrl: currentEvent.coverImageUrl || null,
       });
@@ -170,7 +175,6 @@ export function BusinessEditEventPage() {
     }));
   };
 
-  // Handle location selection with coordinates
   const handlePlaceSelect = (place: {
     address: string;
     placeId: string;
@@ -183,6 +187,10 @@ export function BusinessEditEventPage() {
       latitude: place.lat || 0,
       longitude: place.lng || 0,
     }));
+
+    console.log("Address:", place.address);
+    console.log("Latitude:", place.lat);
+    console.log("Longitude:", place.lng);
   };
 
   const handleBackgroundImageUpload = async (url: string | null) => {
@@ -313,14 +321,16 @@ export function BusinessEditEventPage() {
         coverImageUrl: formData.coverImageUrl || undefined,
         isPaid: formData.isPaid,
         allowReservations: formData.allowReservations,
-        ticketTypes: formData.isPaid ? formData.ticketTypes.map(ticket => ({
-          id: ticket.id,
-          name: ticket.name,
-          price: ticket.price,
-          quantity: ticket.quantity
-        })) : [],
-        reservationPricing: [], 
-        media: [] 
+        ticketTypes: formData.isPaid
+          ? formData.ticketTypes.map((ticket) => ({
+              id: ticket.id,
+              name: ticket.name,
+              price: ticket.price,
+              quantity: ticket.quantity,
+            }))
+          : [],
+        reservationPricing: [],
+        media: [],
       };
 
       console.log("Updating event with data:", eventData);
@@ -362,10 +372,15 @@ export function BusinessEditEventPage() {
   };
 
   // Get display values for date and time inputs
-  const displayDate = formData.startDateTime ? getDateFromISO(formData.startDateTime) : "";
-  const displayTime = formData.startDateTime ? getTimeSlotFromISO(formData.startDateTime) : "";
+  const displayDate = formData.startDateTime
+    ? getDateFromISO(formData.startDateTime)
+    : "";
+  const displayTime = formData.startDateTime
+    ? getTimeSlotFromISO(formData.startDateTime)
+    : "";
 
-  const isFormSubmittable = !loading && !uploadingImages.background && !uploadingImages.poster;
+  const isFormSubmittable =
+    !loading && !uploadingImages.background && !uploadingImages.poster;
 
   return (
     <div className="min-h-screen">
@@ -441,7 +456,7 @@ export function BusinessEditEventPage() {
                       <SelectTrigger className="w-full min-h-11">
                         <SelectValue placeholder="Select Event Type" />
                       </SelectTrigger>
-                       <SelectContent>
+                      <SelectContent>
                         <SelectItem value="party">Party</SelectItem>
                         <SelectItem value="conference">Conference</SelectItem>
                         <SelectItem value="wedding">Wedding</SelectItem>
@@ -498,12 +513,15 @@ export function BusinessEditEventPage() {
                     value={displayDate}
                     onChange={(e) => {
                       const newDate = e.target.value;
-                      const newStartDateTime = getDateTimeFromTimeSlot(newDate, displayTime);
+                      const newStartDateTime = getDateTimeFromTimeSlot(
+                        newDate,
+                        displayTime
+                      );
                       const newEndDateTime = getEndDateTime(newStartDateTime);
-                      setFormData(prev => ({
+                      setFormData((prev) => ({
                         ...prev,
                         startDateTime: newStartDateTime,
-                        endDateTime: newEndDateTime
+                        endDateTime: newEndDateTime,
                       }));
                     }}
                     className="h-11"
@@ -522,12 +540,15 @@ export function BusinessEditEventPage() {
                   <Select
                     value={displayTime}
                     onValueChange={(value) => {
-                      const newStartDateTime = getDateTimeFromTimeSlot(displayDate, value);
+                      const newStartDateTime = getDateTimeFromTimeSlot(
+                        displayDate,
+                        value
+                      );
                       const newEndDateTime = getEndDateTime(newStartDateTime);
-                      setFormData(prev => ({
+                      setFormData((prev) => ({
                         ...prev,
                         startDateTime: newStartDateTime,
-                        endDateTime: newEndDateTime
+                        endDateTime: newEndDateTime,
                       }));
                     }}
                     disabled={!isFormSubmittable}

@@ -65,7 +65,6 @@ const getDateTimeFromTimeSlot = (date: string, timeSlot: string): string => {
   return dateObj.toISOString();
 };
 
-// Helper function to calculate end time (default to 3 hours after start)
 const getEndDateTime = (startDateTime: string): string => {
   const endDate = new Date(startDateTime);
   endDate.setHours(endDate.getHours() + 3);
@@ -82,18 +81,6 @@ export function BusinessCreateEventPage() {
     background: false,
     poster: false,
   });
-
-  const handlePlaceSelect = (place: {
-    address: string;
-    placeId: string;
-    lat?: number;
-    lng?: number;
-  }) => {
-    setFormData((prev) => ({
-      ...prev,
-      location: place.address,
-    }));
-  };
 
   const [formData, setFormData] = useState<EventFormData>({
     eventTitle: "",
@@ -126,6 +113,24 @@ export function BusinessCreateEventPage() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handlePlaceSelect = (place: {
+    address: string;
+    placeId: string;
+    lat?: number;
+    lng?: number;
+  }) => {
+    setFormData((prev) => ({
+      ...prev,
+      location: place.address,
+      latitude: place.lat || 0,
+      longitude: place.lng || 0,
+    }));
+
+    console.log("Address:", place.address);
+    console.log("Latitude:", place.lat);
+    console.log("Longitude:", place.lng);
   };
 
   const handleSelectChange = (field: keyof EventFormData, value: string) => {

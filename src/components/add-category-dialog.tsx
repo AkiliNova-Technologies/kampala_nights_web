@@ -50,8 +50,8 @@ export function AddCategoryDialog({
     }));
   };
 
-  const handleImageChange = (file: File | null) => {
-    handleInputChange("categoryImage", file);
+  const handleImageChange = (url: string | null) => {
+    handleInputChange("categoryImage", url);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -166,8 +166,8 @@ export function AddCategoryDialog({
             description="Category image. Used for category poster."
             recommendedSize="1920×1080px"
             formats="JPEG or PNG"
-            maxSize="10MB"
-            onImageChange={handleImageChange}
+            maxSize={10}
+            onImageUpload={handleImageChange}
           />
 
           {/* Countdown Duration */}

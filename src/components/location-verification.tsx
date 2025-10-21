@@ -1,4 +1,3 @@
-// components/location-verification.tsx
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +21,7 @@ export function LocationVerification({
   onLocationVerified,
   verificationThreshold = 100,
 }: LocationVerificationProps) {
-  const [isVerified, setIsVerified] = useState(false);
+  // const [isVerified, setIsVerified] = useState(false);
   const [distance, setDistance] = useState<number | null>(null);
 
   const {
@@ -47,11 +46,11 @@ export function LocationVerification({
         setDistance(calculatedDistance);
 
         if (calculatedDistance <= verificationThreshold) {
-          setIsVerified(true);
+          // setIsVerified(true);
           toast.success('Location verified successfully!');
           onLocationVerified?.(location, address);
         } else {
-          setIsVerified(false);
+          // setIsVerified(false);
           toast.error(`You are ${calculatedDistance.toFixed(0)}m away from the business location`);
         }
       } else {

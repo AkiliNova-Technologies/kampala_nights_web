@@ -37,7 +37,7 @@ const LocationInput = React.forwardRef<HTMLInputElement, LocationInputProps>(
       onChange,
       onPlaceSelect,
       country = "ug",
-      debounceMs = 400, // Slightly longer debounce for OSM
+      debounceMs = 400,
       limit = 5,
       className,
       ...props

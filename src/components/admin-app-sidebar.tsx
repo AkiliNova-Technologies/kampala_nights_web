@@ -65,7 +65,7 @@ export function AdminAppSidebar({
       },
       {
         title: "Hot or Not",
-        url: "/admin/hot-or-cold",
+        url: "/admin/hot-or-not",
         icon: Flame,
       },
       {

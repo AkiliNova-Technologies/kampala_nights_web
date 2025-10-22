@@ -2,13 +2,6 @@ import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Image, MapPin, ReceiptText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -31,14 +24,21 @@ interface EventFormData {
   longitude: number;
   maxAttendees: number;
   isPaidEvent: boolean;
+  allowReservations: boolean;
   tickets: Array<{
+    // Changed from ticketTypes to tickets
     id: string;
     name: string;
     price: number;
     quantity: number;
   }>;
+  groupPricing: {
+    group1_3: number;
+    group4_6: number;
+    group7_10: number;
+  };
   backgroundImageUrl: string | null;
-  posterImageUrl: string | null;
+  posterImageUrl: string | null; // Changed from coverImageUrl to posterImageUrl
 }
 
 // Helper function to convert time string to actual datetime
@@ -93,16 +93,15 @@ export function BusinessCreateEventPage() {
     longitude: 0,
     maxAttendees: 0,
     isPaidEvent: false,
-    tickets: [
-      {
-        id: "1",
-        name: "",
-        price: 0,
-        quantity: 0,
-      },
-    ],
+    allowReservations: false,
+    tickets: [], // Changed from ticketTypes to tickets
+    groupPricing: {
+      group1_3: 0,
+      group4_6: 0,
+      group7_10: 0,
+    },
     backgroundImageUrl: null,
-    posterImageUrl: null,
+    posterImageUrl: null, // Changed from coverImageUrl to posterImageUrl
   });
 
   const handleInputChange = (
@@ -133,12 +132,6 @@ export function BusinessCreateEventPage() {
     console.log("Longitude:", place.lng);
   };
 
-  const handleSelectChange = (field: keyof EventFormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
 
   // Background Image Handlers
   const handleBackgroundImageUpload = async (url: string | null) => {
@@ -191,6 +184,11 @@ export function BusinessCreateEventPage() {
       price: number;
       quantity: number;
     }>;
+    groupPricing?: {
+      group1_3: number;
+      group4_6: number;
+      group7_10: number;
+    };
   }) => {
     setFormData((prev) => ({
       ...prev,
@@ -376,7 +374,7 @@ export function BusinessCreateEventPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                   <div>
                     <Label
                       htmlFor="event-title"
@@ -397,33 +395,6 @@ export function BusinessCreateEventPage() {
                     />
                   </div>
 
-                  <div>
-                    <Label
-                      htmlFor="category"
-                      className="text-sm font-medium mb-2 block"
-                    >
-                      Category
-                    </Label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value) =>
-                        handleSelectChange("category", value)
-                      }
-                      disabled={!isFormSubmittable}
-                    >
-                      <SelectTrigger className="w-full min-h-11">
-                        <SelectValue placeholder="Select Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="party">Party</SelectItem>
-                        <SelectItem value="conference">Conference</SelectItem>
-                        <SelectItem value="wedding">Wedding</SelectItem>
-                        <SelectItem value="concert">Concert</SelectItem>
-                        <SelectItem value="workshop">Workshop</SelectItem>
-                        <SelectItem value="networking">Networking</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
 
                 <div>
@@ -526,6 +497,7 @@ export function BusinessCreateEventPage() {
                 maxAttendees: formData.maxAttendees,
                 isPaidEvent: formData.isPaidEvent,
                 tickets: formData.tickets,
+                groupPricing: formData.groupPricing,
               }}
               onFormChange={handleCapacityPricingChange}
               disabled={!isFormSubmittable}

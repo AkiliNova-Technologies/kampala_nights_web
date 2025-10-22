@@ -2,7 +2,6 @@ import * as React from "react";
 import {
   CalendarDays,
   Handshake,
-  ImageIcon,
   LayoutDashboardIcon,
   LogOut,
   Megaphone,
@@ -22,6 +21,7 @@ import { NavHeader } from "./nav-header";
 import dashboardLogo1 from "@/assets/images/favicon.png";
 import dashboardLogo2 from "@/assets/images/KN words.png";
 import { useReduxAuth } from "@/hooks/UseReduxAuth";
+
 
 export function BusinessAppSidebar({
   ...props
@@ -60,11 +60,6 @@ export function BusinessAppSidebar({
         title: "Invoices",
         url: "/business/invoices",
         icon: Wallet,
-      },
-      {
-        title: "Gallery",
-        url: "/business/gallery",
-        icon: ImageIcon,
       },
       {
         title: "Promotions",

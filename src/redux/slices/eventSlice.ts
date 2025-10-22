@@ -26,8 +26,9 @@ export interface CreateEventData {
     quantity: number;
   }>;
   reservationPricing: Array<{
-    optionName: string;
-    price: number;
+    group1_3: number;
+    group4_6: number;
+    group7_10: number;
   }>;
   media: Array<{
     type: "IMAGE" | "VIDEO";
@@ -55,13 +56,16 @@ export interface UpdateEventData {
   isPaid: boolean;
   allowReservations: boolean;
   ticketTypes: Array<{
+    id?: string; 
     name: string;
     price: number;
     quantity: number;
   }>;
   reservationPricing: Array<{
-    optionName: string;
-    price: number;
+    id?: string; 
+    group1_3: number;
+    group4_6: number;
+    group7_10: number;
   }>;
   media: Array<{
     type: "IMAGE" | "VIDEO";

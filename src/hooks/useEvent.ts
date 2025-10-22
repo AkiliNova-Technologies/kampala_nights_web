@@ -26,9 +26,11 @@ export function useEvents() {
       status: "PENDING",
       isApproved: false,
       isActive: true,
-      isPaid: true,
+      isPaid: true, // Paid event with tickets
       allowReservations: true,
       createdAt: "2025-01-15T14:30:00.000Z",
+      
+      // Ticket-based pricing for paid event
       eventTicketTypes: [
         {
           id: "ticket-1-1",
@@ -49,15 +51,10 @@ export function useEvents() {
           createdAt: "2025-01-15T14:30:00.000Z",
         },
       ],
-      eventReservationPricing: [
-        {
-          id: "res-1-1",
-          optionName: "VIP Table (6 people)",
-          price: 500000,
-          isActive: true,
-          createdAt: "2025-01-15T14:30:00.000Z",
-        },
-      ],
+      
+      // Group pricing for free events (empty for paid events)
+      groupPricing: [],
+      
       eventmedia: [
         {
           id: "media-1-1",
@@ -70,7 +67,7 @@ export function useEvents() {
           durationSec: null,
         },
       ],
-      // Updated with proper typing
+      
       vibeData: [
         { time: "10pm", vibe: 85 },
         { time: "11pm", vibe: 92 },
@@ -80,6 +77,7 @@ export function useEvents() {
         { time: "3am", vibe: 82 },
         { time: "4am", vibe: 90 },
       ],
+      
       checkIns: [
         {
           id: "checkin-1-1",
@@ -122,6 +120,7 @@ export function useEvents() {
           status: "CHECKED_IN",
         },
       ],
+      
       activityLog: [
         {
           id: "activity-1-1",
@@ -169,11 +168,13 @@ export function useEvents() {
       status: "APPROVED",
       isApproved: true,
       isActive: true,
-      isPaid: true,
+      isPaid: true, // Paid event with single ticket type
       allowReservations: false,
       createdAt: "2025-01-10T09:15:00.000Z",
       approvedAt: "2025-01-12T14:20:00.000Z",
       approvedBy: "admin-1",
+      
+      // Single ticket type for paid event
       eventTicketTypes: [
         {
           id: "ticket-2-1",
@@ -185,7 +186,10 @@ export function useEvents() {
           createdAt: "2025-01-10T09:15:00.000Z",
         },
       ],
-      eventReservationPricing: [],
+      
+      // No group pricing for paid events
+      groupPricing: [],
+      
       eventmedia: [
         {
           id: "media-2-1",
@@ -198,6 +202,7 @@ export function useEvents() {
           durationSec: null,
         },
       ],
+      
       activityLog: [
         {
           id: "activity-2-1",
@@ -227,6 +232,7 @@ export function useEvents() {
           details: { updatedFields: ["startDateTime", "endDateTime"] },
         },
       ],
+      
       checkIns: [
         {
           id: "checkin-2-1",
@@ -267,31 +273,27 @@ export function useEvents() {
       status: "COMPLETED",
       isApproved: true,
       isActive: true,
-      isPaid: true,
+      isPaid: false, // FREE event with group pricing
       allowReservations: true,
       createdAt: "2025-01-05T11:20:00.000Z",
       approvedAt: "2025-01-07T16:45:00.000Z",
       approvedBy: "admin-1",
-      eventTicketTypes: [
+      
+      // No tickets for free events
+      eventTicketTypes: [],
+      
+      // Group pricing for free event with reservations
+      groupPricing: [
         {
-          id: "ticket-3-1",
-          name: "VIP Package",
-          price: 200000,
-          quantity: 150,
-          soldCount: 90,
+          id: "group-3-1",
+          group1_3: 300000,  // 1-3 people: 300,000 UGX
+          group4_6: 500000,  // 4-6 people: 500,000 UGX
+          group7_10: 700000, // 7-10 people: 700,000 UGX
           isActive: true,
           createdAt: "2025-01-05T11:20:00.000Z",
         },
       ],
-      eventReservationPricing: [
-        {
-          id: "res-3-1",
-          optionName: "Private Booth (4 people)",
-          price: 300000,
-          isActive: true,
-          createdAt: "2025-01-05T11:20:00.000Z",
-        },
-      ],
+      
       eventmedia: [
         {
           id: "media-3-1",
@@ -304,6 +306,7 @@ export function useEvents() {
           durationSec: null,
         },
       ],
+      
       vibeData: [
         { time: "10pm", vibe: 85 },
         { time: "11pm", vibe: 92 },
@@ -313,6 +316,7 @@ export function useEvents() {
         { time: "3am", vibe: 82 },
         { time: "4am", vibe: 90 },
       ],
+      
       checkIns: [
         {
           id: "checkin-3-1",
@@ -355,6 +359,7 @@ export function useEvents() {
           status: "CHECKED_IN",
         },
       ],
+      
       activityLog: [
         {
           id: "activity-3-1",
@@ -376,12 +381,16 @@ export function useEvents() {
         },
         {
           id: "activity-3-3",
-          action: "Reservation pricing added",
+          action: "Group pricing added",
           timestamp: "January 8, 2025 at 10:30 AM",
           userId: "user-owner-3",
           userName: "VIP Lounge Manager",
           type: "UPDATE",
-          details: { reservationOption: "Private Booth", price: 300000 },
+          details: { 
+            group1_3: 300000, 
+            group4_6: 500000, 
+            group7_10: 700000 
+          },
         },
         {
           id: "activity-3-4",
@@ -393,6 +402,7 @@ export function useEvents() {
           details: { previousStatus: "LIVE", newStatus: "COMPLETED" },
         },
       ],
+      
       liveGallery: [
         {
           id: "gallery-3-1",
@@ -433,6 +443,79 @@ export function useEvents() {
       ],
     },
     {
+      id: "4",
+      name: "Community Art Exhibition",
+      description: "Free art exhibition showcasing local artists with live demonstrations.",
+      startDateTime: "2025-11-05T10:00:00.000Z",
+      endDateTime: "2025-11-05T18:00:00.000Z",
+      maxAttendees: 200,
+      eventType: "art",
+      location: "National Theatre, Kampala",
+      latitude: 0.3163,
+      longitude: 32.5822,
+      backgroundImageUrl: Event1,
+      coverImageUrl: Event1,
+      status: "APPROVED",
+      isApproved: true,
+      isActive: true,
+      isPaid: false, // FREE event without reservations
+      allowReservations: false,
+      createdAt: "2025-01-20T08:00:00.000Z",
+      approvedAt: "2025-01-22T11:30:00.000Z",
+      approvedBy: "admin-1",
+      
+      // No tickets for free events
+      eventTicketTypes: [],
+      
+      // No group pricing for free events without reservations
+      groupPricing: [],
+      
+      eventmedia: [
+        {
+          id: "media-4-1",
+          type: "IMAGE",
+          position: 0,
+          url: Event1,
+          storageKey: "events/art-exhibition-1.jpg",
+          width: 1200,
+          height: 800,
+          durationSec: null,
+        },
+      ],
+      
+      activityLog: [
+        {
+          id: "activity-4-1",
+          action: "Event submitted for approval",
+          timestamp: "January 20, 2025 at 8:00 AM",
+          userId: "user-owner-4",
+          userName: "Art Gallery Manager",
+          type: "CREATION",
+          details: { previousStatus: null, newStatus: "PENDING" },
+        },
+        {
+          id: "activity-4-2",
+          action: "Event approved by admin",
+          timestamp: "January 22, 2025 at 11:30 AM",
+          userId: "admin-1",
+          userName: "System Admin",
+          type: "STATUS_CHANGE",
+          details: { previousStatus: "PENDING", newStatus: "APPROVED" },
+        },
+      ],
+      
+      checkIns: [
+        {
+          id: "checkin-4-1",
+          name: "Maria Nalubega",
+          time: "30 mins ago",
+          userId: "user-401",
+          checkedInAt: "2025-11-05T10:30:00.000Z",
+          status: "CHECKED_IN",
+        },
+      ],
+    },
+    {
       id: "6",
       name: "Rooftop Sundowner",
       description: "Sunset drinks with panoramic city views and chill vibes.",
@@ -448,25 +531,19 @@ export function useEvents() {
       status: "REJECTED",
       isApproved: false,
       isActive: false,
-      isPaid: false,
+      isPaid: false, // FREE event (rejected)
       allowReservations: false,
       createdAt: "2025-09-10T08:45:00.000Z",
       rejectionReason:
         "This event does not comply with our community guidelines regarding noise regulations and crowd management protocols. The venue capacity exceeds the permitted limit for this location, and the proposed sound levels violate local ordinances.",
-      // Additional UI fields
       rejectionDate: "October 25, 2025 at 2:30 PM",
-      eventTicketTypes: [
-        {
-          id: "ticket-6-1",
-          name: "Free Entry",
-          price: 0,
-          quantity: 80,
-          soldCount: 0,
-          isActive: false,
-          createdAt: "2025-09-10T08:45:00.000Z",
-        },
-      ],
-      eventReservationPricing: [],
+      
+      // No tickets for rejected free event
+      eventTicketTypes: [],
+      
+      // No group pricing for rejected event
+      groupPricing: [],
+      
       eventmedia: [
         {
           id: "media-6-1",
@@ -479,6 +556,7 @@ export function useEvents() {
           durationSec: null,
         },
       ],
+      
       activityLog: [
         {
           id: "activity-6-1",
@@ -504,6 +582,7 @@ export function useEvents() {
           },
         },
       ],
+      
       checkIns: [], // No check-ins for rejected event
     },
   ]);
@@ -518,7 +597,7 @@ export function useEvents() {
         event.id === eventId
           ? {
               ...event,
-              status: status as any, // Type assertion for dummy data
+              status: status as any,
               ...(rejectionReason && {
                 rejectionReason,
                 rejectionDate: new Date().toLocaleString("en-US", {

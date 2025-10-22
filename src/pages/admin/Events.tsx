@@ -23,7 +23,6 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useReduxEvents } from "@/hooks/useReduxEvents";
 
-// UI Event interface based on your actual backend response
 interface UIEvent {
   id: string;
   name: string;
@@ -52,13 +51,16 @@ interface UIEvent {
     isActive: boolean;
     createdAt: string;
   }>;
-  eventReservationPricing: Array<{
+  groupPricing: Array<{
     id: string;
-    optionName: string;
-    price: number;
+    group1_3: number;
+    group4_6: number;
+    group7_10: number;
     isActive: boolean;
     createdAt: string;
+    updatedAt?: string;
   }>;
+  // REMOVED: eventReservationPricing - No longer needed
   eventmedia: Array<{
     id: string;
     type: "IMAGE" | "VIDEO";
@@ -100,7 +102,7 @@ export function EventsPage() {
   const [hasFetchedInitialData, setHasFetchedInitialData] = useState(false);
 
   const { events, loading, fetchEvents, refreshEvents, hasData } =
-    useReduxEvents({mode: "admin"});
+    useReduxEvents({ mode: "admin" });
 
   useEffect(() => {
     if (!hasData && !hasFetchedInitialData && !loading) {
@@ -132,10 +134,8 @@ export function EventsPage() {
     }
   };
 
-  // Transform Backend events to match UI interface
   const transformedEvents: UIEvent[] = useMemo(() => {
     return events.map((event) => {
-      // Get the first image from eventmedia for the avatar
       const firstImage = event.eventmedia?.find(
         (media) => media.type === "IMAGE"
       );
@@ -158,16 +158,32 @@ export function EventsPage() {
         hour12: true,
       });
 
-      // Calculate display values
+      // Calculate display values - Updated to handle both ticket and group pricing
       const getDisplayPrice = () => {
-        if (!event.isPaid) return "Free";
-        if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
-          const lowestPrice = Math.min(
-            ...event.eventTicketTypes.map((ticket) => ticket.price)
-          );
-          return `UGX ${lowestPrice.toLocaleString()}`;
+        if (event.isPaid) {
+          // Paid events with tickets
+          if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
+            const lowestPrice = Math.min(
+              ...event.eventTicketTypes.map((ticket) => ticket.price)
+            );
+            return `UGX ${lowestPrice.toLocaleString()}`;
+          }
+          return "Paid";
+        } else {
+          // Free events with group pricing
+          if (event.groupPricing && event.groupPricing.length > 0) {
+            const groupPricing = event.groupPricing[0];
+            const lowestPrice = Math.min(
+              groupPricing.group1_3,
+              groupPricing.group4_6,
+              groupPricing.group7_10
+            );
+            return lowestPrice > 0
+              ? `From UGX ${lowestPrice.toLocaleString()}`
+              : "Free";
+          }
+          return "Free";
         }
-        return "Paid";
       };
 
       const getDisplayAttendance = () => {
@@ -193,15 +209,16 @@ export function EventsPage() {
       };
 
       return {
-        // Original backend fields
         ...event,
+        // Ensure groupPricing is always an array (for consistency)
+        groupPricing: event.groupPricing || [],
 
         // UI computed fields
-        business: "Event Business", // You might want to get this from your actual data
+        business: "Event Business",
         date,
         time,
         displayLocation: event.location,
-        vibeScore: Math.floor(Math.random() * 30) + 70, // Random score for demo
+        vibeScore: Math.floor(Math.random() * 30) + 70,
         image: imageUrl,
         businessImage: "/api/placeholder/40/40",
         displayPrice: getDisplayPrice(),
@@ -423,9 +440,21 @@ export function EventsPage() {
       header: "Location",
       cell: (_, row) => (
         <div className="text-wrap max-w-2xs">
-          <span className="font-medium line-clamp-2">{row.displayLocation}</span>
+          <span className="font-medium line-clamp-2">
+            {row.displayLocation}
+          </span>
         </div>
       ),
+    },
+    {
+      key: "displayPrice",
+      header: "Ticket Price",
+      cell: (value) => (
+        <div className="text-center">
+          <span className="font-medium">{value as string}</span>
+        </div>
+      ),
+      align: "center",
     },
     {
       key: "displayPrice",

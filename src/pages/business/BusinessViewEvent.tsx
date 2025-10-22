@@ -28,7 +28,7 @@ export function BusinessViewEventPage() {
     fetchEventById, 
     rejectEvent, 
     currentEvent,
-  } = useReduxEvents({ mode: "business" });
+  } = useReduxEvents({mode: "business"});
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
   // Fetch event when component mounts or id changes
@@ -37,29 +37,6 @@ export function BusinessViewEventPage() {
       fetchEventById(id);
     }
   }, [id, fetchEventById]);
-
-
-
-  if (!currentEvent) {
-    return (
-      <div className="min-h-screen">
-        <SiteHeader label="Event Management" />
-        <main className="flex-1 p-6">
-          <div className="flex items-center space-x-4 mb-8">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="p-2 bg-background dark:bg-card"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-xl font-semibold">Event Not Found</h1>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   const event = currentEvent;
 
@@ -71,23 +48,18 @@ export function BusinessViewEventPage() {
   };
 
   const handleBackgroundImageChange = (url: string | null) => {
-    // Handle background image upload URL
     console.log("Background image uploaded:", url);
-    // Here you would typically update your event data with the new image URL
-    // For example: updateEventMedia(event.id, url);
   };
 
   const handleEditEvent = () => {
-    navigate(`/business/events/${event.id}/edit`);
+    if (event?.id) {
+      navigate(`/business/events/${event.id}/edit`);
+    }
   };
 
   const handleResubmitEvent = () => {
     if (id) {
-      // For resubmission, we need to update status to PENDING
-      // You might need to add an updateEventStatus method to your hook
-      // For now, using approveEvent as a placeholder - you should implement this properly
       console.log("Resubmitting event:", id);
-      // This would need proper implementation in your hook
     }
     navigate("/business/events");
   };
@@ -112,7 +84,7 @@ export function BusinessViewEventPage() {
   };
 
   const getDisplayPrice = () => {
-    if (!event.isPaid) return "Free";
+    if (!event?.isPaid) return "Free";
     if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
       const lowestPrice = Math.min(
         ...event.eventTicketTypes.map((ticket: EventTicketType) => ticket.price)
@@ -123,6 +95,7 @@ export function BusinessViewEventPage() {
   };
 
   const getDisplayAttendance = () => {
+    if (!event) return "0/0";
     if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
       const totalSold = event.eventTicketTypes.reduce(
         (sum: number, ticket: EventTicketType) => sum + ticket.soldCount,
@@ -130,19 +103,50 @@ export function BusinessViewEventPage() {
       );
       return `${totalSold}/${event.maxAttendees}`;
     }
-    return `0/${event.maxAttendees}`;
+    return `0/${event.maxAttendees || 0}`;
   };
 
   const getDisplayRevenue = () => {
-    if (event.eventTicketTypes && event.eventTicketTypes.length > 0) {
-      const totalRevenue = event.eventTicketTypes.reduce(
-        (sum: number, ticket: EventTicketType) => sum + ticket.price * ticket.soldCount,
-        0
-      );
-      return `UGX ${totalRevenue.toLocaleString()}`;
+    if (!event?.eventTicketTypes || event.eventTicketTypes.length === 0) {
+      return "UGX 0";
     }
-    return "UGX 0";
+    const totalRevenue = event.eventTicketTypes.reduce(
+      (sum: number, ticket: EventTicketType) => sum + ticket.price * ticket.soldCount,
+      0
+    );
+    return `UGX ${totalRevenue.toLocaleString()}`;
   };
+
+  // Early return if event is not loaded
+  if (!event) {
+    return (
+      <div className="min-h-screen">
+        <SiteHeader label="Event Management" />
+        <main className="flex-1">
+          <div className="space-y-6 p-6">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="p-2 bg-background dark:bg-card"
+                  onClick={() => navigate(-1)}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                  <h1 className="text-xl font-semibold">Back to Events</h1>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center items-center h-64">
+              <p>Loading event...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const gridClasses =
     event.status === "COMPLETED"
@@ -312,11 +316,11 @@ export function BusinessViewEventPage() {
               )}
 
               {/* Event Gallery - Only for Completed events */}
-              {event.status === "COMPLETED" && (
+              {event.status === "COMPLETED" && event.liveGallery && (
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold">Event Gallery</h3>
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-                    {event.liveGallery?.map((image: LiveGalleryImage, index: number) => (
+                    {event.liveGallery.map((image: LiveGalleryImage, index: number) => (
                       <div key={image.url || index} className="aspect-square">
                         <Image
                           src={image.url}

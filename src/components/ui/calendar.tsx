@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeft,
   ChevronRight,
-  Plus,
+  // Plus,
   Calendar as CalendarIcon,
   Clock,
   Grid3x3,
@@ -392,7 +392,7 @@ export function Calendar({
           </div>
 
           {/* Desktop: Button group */}
-          <div className="hidden sm:flex items-center gap-1 rounded-lg border bg-background p-1">
+          <div className="hidden sm:flex items-center gap-1 rounded-sm border bg-background p-1">
             <Button
               variant={view === "month" ? "secondary" : "ghost"}
               size="sm"
@@ -431,7 +431,7 @@ export function Calendar({
             </Button>
           </div>
 
-          <Button
+          {/* <Button
             onClick={() => {
               setIsCreating(true);
               setIsDialogOpen(true);
@@ -440,7 +440,7 @@ export function Calendar({
           >
             <Plus className="mr-2 h-4 w-4" />
             New Event
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -1618,7 +1618,7 @@ function ListView({
                   <div
                     key={event.id}
                     onClick={() => onEventClick(event)}
-                    className="group cursor-pointer rounded-lg border bg-card p-3 transition-all hover:shadow-md hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-2 duration-300 sm:p-4"
+                    className="group cursor-pointer rounded-sm border bg-card p-3 transition-all hover:shadow-md hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-2 duration-300 sm:p-4"
                   >
                     <div className="flex items-start gap-2 sm:gap-3">
                       <div

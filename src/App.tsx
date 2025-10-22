@@ -50,6 +50,10 @@ import { ViewReservationPage } from "./pages/business/ViewReservation";
 import ReservationsPageLayout from "./layouts/ReservationsPageLayout";
 import { FindYourDJPage } from "./pages/admin/FindYourDJ";
 
+import HotorNotPageLayout from "./layouts/HotorNotPageLayout";
+import { HotorNotAddCategoryPage } from "./pages/admin/HotorNotAddCategory";
+
+
 function App() {
   return (
     <>
@@ -93,7 +97,10 @@ function App() {
               <Route index element={<EventsPage />} />
               <Route path=":id" element={<EventDetailsPage />} />
             </Route>
-            <Route path="hot-or-cold" element={<HotOrNotPage />} />
+            <Route path="hot-or-not" element={<HotorNotPageLayout />}>
+              <Route index element={<HotOrNotPage />} />
+              <Route path="add-category" element={<HotorNotAddCategoryPage />} />
+            </Route>
             <Route path="find-your-dj" element={<FindYourDJPage />} />
             <Route path="moderation" element={<ModerationPage />} />
             <Route path="revenue" element={<RevenuePage />} />

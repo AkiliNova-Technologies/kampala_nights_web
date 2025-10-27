@@ -16,3 +16,4 @@ export interface Ticket {
   email?: string;
   [key: string]: unknown;
 }
+

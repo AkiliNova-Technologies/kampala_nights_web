@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   Building2,
   CalendarDays,
+  FileSpreadsheet,
   Flame,
   Landmark,
   LayoutDashboardIcon,
@@ -82,6 +83,11 @@ export function AdminAppSidebar({
         title: "Helpdesk",
         url: "/admin/helpdesk",
         icon: MessageCircleQuestionMark,
+      },
+      {
+        title: "Reported Cases",
+        url: "/admin/reported-cases",
+        icon: FileSpreadsheet,
       },
       {
         title: "Settings",

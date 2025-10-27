@@ -9,6 +9,11 @@ import { Plus, X, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ImageUploadField } from "@/components/image-upload-field";
+import contest1 from "@/assets/images/contestant1.jpg";
+import contest2 from "@/assets/images/contestant2.jpg";
+import contest3 from "@/assets/images/contestant3.jpg";
+import contest4 from "@/assets/images/contestant4.jpg";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface Contestant {
   id: string;
@@ -21,7 +26,7 @@ interface Contestant {
 interface FormData {
   categoryName: string;
   description: string;
-  countdownDuration: number;
+  countdownDuration: number | undefined;
   startDate: Date | undefined;
   categoryImage: string | null;
   selectedContestants: Contestant[];
@@ -31,10 +36,9 @@ export function HotorNotAddCategoryPage() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>({
-    categoryName: "Boho Styles",
-    description:
-      "Free-spirited styles mixing flowy fabrics, earthy tones, and artistic patterns.",
-    countdownDuration: 72,
+    categoryName: "",
+    description: "",
+    countdownDuration: undefined,
     startDate: new Date(2025, 9, 24), // October 24, 2025
     categoryImage: null,
     selectedContestants: [],
@@ -47,28 +51,56 @@ export function HotorNotAddCategoryPage() {
       name: "Olivia Nalugya",
       username: "olivia_nalugya",
       description: "Effortless charm and free-spirited style",
-      imageUrl: "/api/placeholder/40/40",
+      imageUrl: contest1,
     },
     {
       id: "2",
       name: "Hanifa Nalugya",
       username: "hanifa_nalugya",
       description: "Effortless charm and free-spirited style",
-      imageUrl: "/api/placeholder/40/40",
+      imageUrl: contest2,
     },
     {
       id: "3",
       name: "Sarah Nakato",
       username: "sarah_nakato",
       description: "Effortless charm and free-spirited style",
-      imageUrl: "/api/placeholder/40/40",
+      imageUrl: contest3,
     },
     {
       id: "4",
       name: "Grace Auma",
       username: "grace_auma",
       description: "Effortless charm and free-spirited style",
-      imageUrl: "/api/placeholder/40/40",
+      imageUrl: contest4,
+    },
+    {
+      id: "5",
+      name: "Olivia Nalugya",
+      username: "olivia_nalugya",
+      description: "Effortless charm and free-spirited style",
+      imageUrl: contest1,
+    },
+    {
+      id: "6",
+      name: "Hanifa Nalugya",
+      username: "hanifa_nalugya",
+      description: "Effortless charm and free-spirited style",
+      imageUrl: contest2,
+    },
+    {
+      id: "7",
+      name: "Sarah Nakato",
+      username: "sarah_nakato",
+      description: "Effortless charm and free-spirited style",
+      imageUrl: contest3,
+    },
+    {
+      id: "8",
+      name: "Grace Auma",
+      username: "grace_auma",
+      description: "Effortless charm and free-spirited style",
+      imageUrl: contest4,
     },
   ];
 
@@ -129,7 +161,7 @@ export function HotorNotAddCategoryPage() {
                 <ArrowLeft />
               </Button>
               <div>
-                <p className="font-semibold">Add Category</p>
+                <p className="font-semibold">Add Campaign</p>
                 <p className="text-sm text-muted-foreground">
                   Add category details and nominate contestants
                 </p>
@@ -138,21 +170,56 @@ export function HotorNotAddCategoryPage() {
           </div>
           <Card className="rounded-lg border border-border bg-card p-6 shadow-sm">
             <form onSubmit={handleSubmit} className="space-y-6 px-6 pb-6">
-              {/* Category Name */}
-              <div className="space-y-2">
-                <Label htmlFor="categoryName" className="text-sm font-medium">
-                  Category
-                </Label>
-                <Input
-                  id="categoryName"
-                  placeholder="e.g Vintage Fashion, Street Style, Best DJ"
-                  value={formData.categoryName}
-                  onChange={(e) =>
-                    handleInputChange("categoryName", e.target.value)
-                  }
-                  required
-                  className="h-11"
-                />
+              <div className="grid grid-cols-2 gap-6">
+                {/* Campaign Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="categoryName" className="text-sm font-medium">
+                    Campaign Name
+                  </Label>
+                  <Input
+                    id="categoryName"
+                    placeholder="e.g Vintage Fashion, Street Style, Best DJ"
+                    value={formData.categoryName}
+                    onChange={(e) =>
+                      handleInputChange("categoryName", e.target.value)
+                    }
+                    required
+                    className="h-11"
+                  />
+                </div>
+                {/* Campaign category */}
+                <div className="space-y-2">
+                  <Label htmlFor="categoryName" className="text-sm font-medium">
+                    Campaign Category
+                  </Label>
+                  <RadioGroup
+                    value={formData.categoryName}
+                    onValueChange={(value) =>
+                      handleInputChange("categoryName", value)
+                    }
+                    className="flex gap-12 pt-2"
+                    required
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Nightlife" id="nightlife" />
+                      <Label
+                        htmlFor="nightlife"
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        Nightlife
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Fashion" id="fashion" />
+                      <Label
+                        htmlFor="fashion"
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        Fashion
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
               </div>
 
               {/* Description */}
@@ -162,7 +229,7 @@ export function HotorNotAddCategoryPage() {
                 </Label>
                 <Textarea
                   id="description"
-                  placeholder="e.g Best description of the category that will be shown to users"
+                  placeholder="e.g Best description of the campaign that will be shown to users"
                   value={formData.description}
                   onChange={(e) =>
                     handleInputChange("description", e.target.value)
@@ -175,8 +242,8 @@ export function HotorNotAddCategoryPage() {
 
               {/* Category Image Upload */}
               <ImageUploadField
-                label="Category Image"
-                description="Category image. Used for category poster."
+                label="Campaign Image"
+                description="Campaign image. Used for campaign poster."
                 recommendedSize="1920×1080px"
                 formats="JPEG or PNG"
                 maxSize={10}
@@ -198,6 +265,7 @@ export function HotorNotAddCategoryPage() {
                       type="number"
                       min="1"
                       max="168"
+                      placeholder="eg. 24"
                       value={formData.countdownDuration}
                       onChange={(e) =>
                         handleInputChange(
@@ -244,29 +312,28 @@ export function HotorNotAddCategoryPage() {
                       Add or remove users from this category
                     </p>
                   </div>
-                  <Button type="button" variant="outline" size="sm">
+                  {/* <Button type="button" variant="outline" size="sm">
                     <Plus className="size-4 mr-2" />
-                    Add Contestant
-                  </Button>
+                    Nominate Contestants
+                  </Button> */}
                 </div>
 
                 {/* Selected Contestants */}
-                <div className="space-y-3">
+                <div className="items-center grid grid-cols-4 gap-6">
                   {formData.selectedContestants.map((contestant) => (
                     <div
                       key={contestant.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="flex flex-col items-center justify-between p-0 border rounded-lg w-2xs relative"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-center gap-3 w-full">
                         <Image
                           src={contestant.imageUrl || "/api/placeholder/40/40"}
                           alt={contestant.name}
-                          size="xs"
-                          radius="full"
                           fit="cover"
+                          className="w-full h-50 rounded-t-md"
                         />
-                        <div>
-                          <p className="font-medium">{contestant.name}</p>
+                        <div className="px-6 pb-6">
+                          <p className="font-medium mb-2">{contestant.name}</p>
                           <p className="text-sm text-muted-foreground">
                             {contestant.description}
                           </p>
@@ -277,6 +344,7 @@ export function HotorNotAddCategoryPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => removeContestant(contestant.id)}
+                        className="absolute -top-5 -right-5 rounded-full bg-input"
                       >
                         <X className="size-4" />
                       </Button>
@@ -316,7 +384,7 @@ export function HotorNotAddCategoryPage() {
                               contestant.imageUrl || "/api/placeholder/40/40"
                             }
                             alt={contestant.name}
-                            size="xs"
+                            size="sm"
                             radius="full"
                             fit="cover"
                           />
@@ -338,19 +406,19 @@ export function HotorNotAddCategoryPage() {
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
                 <Button
-                  type="submit"
-                  className="bg-[#5014D0] hover:bg-[#4512B8] h-11 flex-1 text-white"
-                  disabled={!isFormSubmittable}
-                >
-                  Create Category
-                </Button>
-                <Button
                   type="button"
                   variant="outline"
                   onClick={handleClose}
                   className="flex-1 h-11"
                 >
                   Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-[#5014D0] hover:bg-[#4512B8] h-11 flex-1 text-white"
+                  disabled={!isFormSubmittable}
+                >
+                  Create Campaign
                 </Button>
               </div>
             </form>

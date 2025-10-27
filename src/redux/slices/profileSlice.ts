@@ -8,6 +8,12 @@ export interface UserProfile {
   lastName: string;
   username: string;
   userType: 'BUSINESS_ACCOUNT' | 'CUSTOMER';
+  department?: string;
+  profileImageUrl?: string;
+  coverImageUrl?: string;
+  phone?: string;
+  address?: string;
+  primaryRole?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt?: string;

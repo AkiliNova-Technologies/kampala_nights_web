@@ -1,4 +1,3 @@
-// components/ui/image.tsx
 "use client";
 
 import React, { useState, useRef } from 'react';

@@ -346,7 +346,7 @@ export function DashboardHome() {
             <PlatformActivityChart />
 
             {/* Recent Business Applications Section */}
-            <div className="rounded-lg border bg-card py-6 mb-6">
+            <div className="rounded-lg border bg-card p-6 mb-6">
               <DataTable<UIBusiness>
                 title="Recent Business Applications"
                 description="Latest businesses requesting to join the platform"
@@ -355,7 +355,7 @@ export function DashboardHome() {
                 actions={businessActions}
                 enableSelection={true}
                 enablePagination={true}
-                pageSize={5}
+                pageSize={10}
                 loading={showLoading}
                 onRowClick={(business) => {
                   console.log("Row clicked:", business);

@@ -52,7 +52,11 @@ import { FindYourDJPage } from "./pages/admin/FindYourDJ";
 
 import HotorNotPageLayout from "./layouts/HotorNotPageLayout";
 import { HotorNotAddCategoryPage } from "./pages/admin/HotorNotAddCategory";
-
+import FindYourDJPageLayout from "./layouts/FindYourDJPageLayout";
+import { AddYourDJPage } from "./pages/admin/AddYourDJ";
+import { ReportedCasesPage } from "./pages/admin/ReportedCases";
+import { EditYourDJPage } from "./pages/admin/EditYourDJ";
+import { ViewYourDJPage } from "./pages/admin/ViewYourDJ";
 
 function App() {
   return (
@@ -99,13 +103,22 @@ function App() {
             </Route>
             <Route path="hot-or-not" element={<HotorNotPageLayout />}>
               <Route index element={<HotOrNotPage />} />
-              <Route path="add-category" element={<HotorNotAddCategoryPage />} />
+              <Route
+                path="add-category"
+                element={<HotorNotAddCategoryPage />}
+              />
             </Route>
-            <Route path="find-your-dj" element={<FindYourDJPage />} />
+            <Route path="find-your-dj" element={<FindYourDJPageLayout />}>
+              <Route index element={<FindYourDJPage />} />
+              <Route path="add" element={<AddYourDJPage />} />
+              <Route path=":id/edit" element={<EditYourDJPage />} />
+              <Route path=":id/view" element={<ViewYourDJPage />} />
+            </Route>
             <Route path="moderation" element={<ModerationPage />} />
             <Route path="revenue" element={<RevenuePage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="helpdesk" element={<SupportPage />} />
+            <Route path="reported-cases" element={<ReportedCasesPage />} />
             <Route
               path="users-management"
               element={<UserManagementPageLayout />}

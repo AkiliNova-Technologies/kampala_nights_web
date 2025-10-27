@@ -34,7 +34,7 @@ export function NavHeader({
                       <img
                         src={item.logo1}
                         alt=""
-                        className="h-9 w-9 min-w-6"
+                        className="h-8 w-8 min-w-6"
                       />
                     ) : (
                       <img
@@ -47,7 +47,7 @@ export function NavHeader({
                       <img
                         src={item.logo2}
                         alt=""
-                        className="h-10 w-28 min-w-6 ml-1"
+                        className="h-10 w-24 min-w-6 ml-1"
                       />
                     )}
                   </>

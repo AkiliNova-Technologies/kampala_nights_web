@@ -209,7 +209,7 @@ export function ImageUploadField({
             <img
               src={existingImageUrl}
               alt="Existing"
-              className="max-h-32 max-w-full rounded object-cover"
+              className="h-full max-h-32 max-w-full rounded object-cover"
             />
             <div className="absolute -top-2 -right-2 flex gap-1">
               <Button
@@ -232,9 +232,6 @@ export function ImageUploadField({
               >
                 <X className="h-3 w-3" />
               </Button>
-            </div>
-            <div className="mt-2 text-xs text-muted-foreground">
-              Existing image - upload new to replace
             </div>
           </div>
         ) : (

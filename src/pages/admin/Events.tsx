@@ -660,19 +660,21 @@ export function EventsPage() {
                 </div>
               </div>
 
-              <DataTable<UIEvent>
-                data={filteredEvents}
-                fields={eventFields}
-                actions={eventActions}
-                enableSelection={true}
-                enablePagination={true}
-                pageSize={5}
-                loading={loading}
-                onRowClick={(event) => {
-                  console.log("Event clicked:", event);
-                  navigate(`/admin/events/${event.id}`);
-                }}
-              />
+              <div className="px-6">
+                <DataTable<UIEvent>
+                  data={filteredEvents}
+                  fields={eventFields}
+                  actions={eventActions}
+                  enableSelection={true}
+                  enablePagination={true}
+                  pageSize={10}
+                  loading={loading}
+                  onRowClick={(event) => {
+                    console.log("Event clicked:", event);
+                    navigate(`/admin/events/${event.id}`);
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

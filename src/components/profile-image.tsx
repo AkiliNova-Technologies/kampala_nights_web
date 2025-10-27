@@ -109,7 +109,7 @@ export function ImageComponent(props: ImageComponentProps) {
       >
         <Avatar
           className={cn(
-            "h-full w-full border-2 border-background",
+            "h-full w-full",
             isDragging && "border-primary"
           )}
         >

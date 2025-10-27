@@ -213,21 +213,26 @@ export function BusinessesPage() {
 
   // FIX 6: Update handlers to work with actual API data
   const handleStatusUpdate = (
-  businessId: string,
-  newStatus: UIBusiness["status"]
-) => {
-  const originalBusiness = mappedBusinesses.find(b => b.id === businessId)?.originalData;
-  
-  if (originalBusiness) {
-    const updates = {
-      status: newStatus, 
-      isVerified: newStatus === "APPROVED",
-      isActive: newStatus === "APPROVED",
-    };
+    businessId: string,
+    newStatus: UIBusiness["status"]
+  ) => {
+    const originalBusiness = mappedBusinesses.find(
+      (b) => b.id === businessId
+    )?.originalData;
 
-    console.log(`Updated business ${businessId} to status: ${newStatus}`, updates);
-  }
-};
+    if (originalBusiness) {
+      const updates = {
+        status: newStatus,
+        isVerified: newStatus === "APPROVED",
+        isActive: newStatus === "APPROVED",
+      };
+
+      console.log(
+        `Updated business ${businessId} to status: ${newStatus}`,
+        updates
+      );
+    }
+  };
 
   const handleDeleteBusiness = (businessId: string) => {
     // TODO: Implement actual delete API call
@@ -443,28 +448,20 @@ export function BusinessesPage() {
                 </div>
               </div>
 
-              {/* Results Count */}
-              <div className="px-6 mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {filteredBusinesses.length} of{" "}
-                  {mappedBusinesses.length} businesses
-                  {(selectedStatuses.length > 0 || searchQuery) &&
-                    " (filtered)"}
-                </p>
+              <div className="px-6">
+                <DataTable<UIBusiness>
+                  data={filteredBusinesses}
+                  fields={businessFields}
+                  actions={businessActions}
+                  enableSelection={true}
+                  enablePagination={true}
+                  pageSize={10}
+                  loading={showLoading}
+                  onRowClick={(business) => {
+                    console.log("Row clicked:", business);
+                  }}
+                />
               </div>
-
-              <DataTable<UIBusiness>
-                data={filteredBusinesses}
-                fields={businessFields}
-                actions={businessActions}
-                enableSelection={true}
-                enablePagination={true}
-                pageSize={5}
-                loading={showLoading}
-                onRowClick={(business) => {
-                  console.log("Row clicked:", business);
-                }}
-              />
             </div>
           </div>
         </div>

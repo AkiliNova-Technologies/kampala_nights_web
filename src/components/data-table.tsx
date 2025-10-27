@@ -14,28 +14,20 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  // ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
-  // ColumnsIcon,
   EyeIcon,
   EditIcon,
   TrashIcon,
   MoreVerticalIcon,
-  Loader2Icon, // Add this import for the loader icon
+  Loader2Icon,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-// import {
-//   DropdownMenu,
-//   DropdownMenuCheckboxItem,
-//   DropdownMenuContent,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -91,6 +83,7 @@ interface DataTableProps<TData extends TableData> {
   enablePagination?: boolean;
   pageSize?: number;
   onRowClick?: (row: TData) => void;
+  onSelectionChange?: (selectedRows: TData[]) => void; // Add this
 }
 
 // Default action icons
@@ -150,11 +143,12 @@ function DataTable<TData extends TableData>({
   data,
   fields,
   actions = [],
-  loading = false, // Default to false
+  loading = false,
   enableSelection = true,
   enablePagination = true,
   pageSize = 10,
   onRowClick,
+  onSelectionChange, // Add this
 }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -176,9 +170,9 @@ function DataTable<TData extends TableData>({
     if (enableSelection) {
       baseColumns.push({
         id: "select",
-        header: ({ table }) => (
+        header: ({}) => (
           <div className="flex items-center justify-center">
-            <Checkbox
+            {/* <Checkbox
               checked={
                 table.getIsAllPageRowsSelected() ||
                 (table.getIsSomePageRowsSelected() && "indeterminate")
@@ -187,7 +181,7 @@ function DataTable<TData extends TableData>({
                 table.toggleAllPageRowsSelected(!!value)
               }
               aria-label="Select all"
-            />
+            /> */}
           </div>
         ),
         cell: ({ row }) => (
@@ -196,6 +190,8 @@ function DataTable<TData extends TableData>({
               checked={row.getIsSelected()}
               onCheckedChange={(value) => row.toggleSelected(!!value)}
               aria-label="Select row"
+              className="mr-2"
+
             />
           </div>
         ),
@@ -231,7 +227,6 @@ function DataTable<TData extends TableData>({
     if (actions.length > 0) {
       baseColumns.push({
         id: "actions",
-        // header: "Actions",
         cell: ({ row }) => (
           <div className="flex items-center gap-3 justify-end">
             {actions.map((action, index) => (
@@ -289,52 +284,24 @@ function DataTable<TData extends TableData>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  // Add selection change handler
+  React.useEffect(() => {
+    if (onSelectionChange) {
+      const selectedRows = table.getSelectedRowModel().rows.map(row => row.original);
+      onSelectionChange(selectedRows);
+    }
+  }, [rowSelection, onSelectionChange, table]);
+
   return (
     <div className="flex w-full flex-col gap-6">
-      <div className="flex items-center justify-between px-4 lg:px-6">
+      <div className="flex items-center justify-between">
         <div className=" flex-col items-start">
           <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
           <p className="text-muted-foreground">{description}</p>
         </div>
-
-        {/* <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <ColumnsIcon />
-                <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
-                <ChevronDownIcon />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) =>
-                    typeof column.accessorFn !== "undefined" &&
-                    column.getCanHide()
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div> */}
       </div>
 
-      <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
+      <div className="relative flex flex-col gap-4 overflow-auto ">
         <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader className="sticky top-0 z-10 bg-muted">
@@ -357,7 +324,6 @@ function DataTable<TData extends TableData>({
             </TableHeader>
             <TableBody>
               {loading ? (
-                // Loading state - single row with centered loader
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}

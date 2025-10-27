@@ -515,18 +515,19 @@ export function UsersManagementPage() {
                   )}
                 </div>
               </div>
-
-              <DataTable<User>
-                data={filteredUsers}
-                fields={userFields}
-                actions={userActions}
-                enableSelection={true}
-                enablePagination={true}
-                pageSize={5}
-                onRowClick={(user) => {
-                  console.log("Row clicked:", user);
-                }}
-              />
+              <div className="px-6">
+                <DataTable<User>
+                  data={filteredUsers}
+                  fields={userFields}
+                  actions={userActions}
+                  enableSelection={true}
+                  enablePagination={true}
+                  pageSize={10}
+                  onRowClick={(user) => {
+                    console.log("Row clicked:", user);
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

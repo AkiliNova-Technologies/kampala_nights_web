@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FilterIcon, EyeIcon } from "lucide-react";
 import { TransactionDetailsDialog } from "@/components/transaction-details-dialog";
-import type { PaymentMethod, Transaction, TransactionStatus } from "@/types/transaction";
+import type {
+  PaymentMethod,
+  Transaction,
+  TransactionStatus,
+} from "@/types/transaction";
 // import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-
 
 type RevenueTab = "all" | "paid" | "cancelled";
 
@@ -45,7 +47,7 @@ export function RevenuePage() {
       paymentMethod: "mobile_money",
       status: "paid",
       date: "2024-01-15",
-      note: "Payment Received via MTN Mobile Money"
+      note: "Payment Received via MTN Mobile Money",
     },
     {
       id: "2",
@@ -59,7 +61,7 @@ export function RevenuePage() {
       paymentMethod: "mobile_money",
       status: "paid",
       date: "2024-01-16",
-      note: "Payment Received via Airtel Mobile Money"
+      note: "Payment Received via Airtel Mobile Money",
     },
     {
       id: "3",
@@ -73,7 +75,7 @@ export function RevenuePage() {
       paymentMethod: "bank_transfer",
       status: "paid",
       date: "2024-01-17",
-      note: "Payment Received via Bank Transfer"
+      note: "Payment Received via Bank Transfer",
     },
     {
       id: "4",
@@ -87,7 +89,7 @@ export function RevenuePage() {
       paymentMethod: "bank_transfer",
       status: "paid",
       date: "2024-01-18",
-      note: "Payment Received via Bank Transfer"
+      note: "Payment Received via Bank Transfer",
     },
     {
       id: "5",
@@ -101,7 +103,7 @@ export function RevenuePage() {
       paymentMethod: "mobile_money",
       status: "cancelled",
       date: "2024-01-19",
-      note: "Payment Received via MTN Mobile Money"
+      note: "Payment Received via MTN Mobile Money",
     },
     {
       id: "6",
@@ -115,7 +117,7 @@ export function RevenuePage() {
       paymentMethod: "mobile_money",
       status: "paid",
       date: "2024-01-20",
-      note: "Payment Received via Airtel Mobile Money"
+      note: "Payment Received via Airtel Mobile Money",
     },
   ];
 
@@ -496,29 +498,20 @@ export function RevenuePage() {
                 </div>
               </div>
 
-              {/* Results Count */}
-              <div className="px-6 mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {filteredTransactions.length} of {transactions.length}{" "}
-                  transactions
-                  {(selectedStatuses.length > 0 || searchQuery) &&
-                    " (filtered)"}
-                  {loading && " - Loading..."}
-                </p>
+              <div className="px-6">
+                <DataTable
+                  data={filteredTransactions}
+                  fields={transactionFields}
+                  actions={transactionActions}
+                  enableSelection={true}
+                  enablePagination={true}
+                  pageSize={10}
+                  loading={loading}
+                  onRowClick={(row) => {
+                    console.log("Transaction clicked:", row);
+                  }}
+                />
               </div>
-
-              <DataTable
-                data={filteredTransactions}
-                fields={transactionFields}
-                actions={transactionActions}
-                enableSelection={true}
-                enablePagination={true}
-                pageSize={10}
-                loading={loading}
-                onRowClick={(row) => {
-                  console.log("Transaction clicked:", row);
-                }}
-              />
             </div>
           </div>
 

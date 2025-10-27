@@ -12,7 +12,14 @@ import {
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { FilterIcon, EyeIcon, TriangleAlert, Clock3, CircleCheckBig, ReceiptText } from "lucide-react";
+import {
+  FilterIcon,
+  EyeIcon,
+  TriangleAlert,
+  Clock3,
+  CircleCheckBig,
+  ReceiptText,
+} from "lucide-react";
 import type { Ticket, TicketStatus } from "@/types/ticket";
 import { HelpdeskTicketDialog } from "@/components/helpdesk-ticket-dialog";
 
@@ -102,7 +109,7 @@ export function SupportPage() {
         change: {
           description: "Awaiting response",
         },
-        rightIcon: <TriangleAlert className="h-4 w-4"/>,
+        rightIcon: <TriangleAlert className="h-4 w-4" />,
         iconBgColor: "bg-[#92400E]",
       },
       {
@@ -111,7 +118,7 @@ export function SupportPage() {
         change: {
           description: "Being worked on",
         },
-        rightIcon: <Clock3 className="h-4 w-4"/>,
+        rightIcon: <Clock3 className="h-4 w-4" />,
         iconBgColor: "bg-[#1E40AF]",
       },
       {
@@ -122,7 +129,7 @@ export function SupportPage() {
           value: "18%",
           description: "from yesterday",
         },
-        rightIcon: <CircleCheckBig className="h-4 w-4"/>,
+        rightIcon: <CircleCheckBig className="h-4 w-4" />,
         iconBgColor: "bg-[#065F46]",
       },
       {
@@ -131,7 +138,7 @@ export function SupportPage() {
         change: {
           description: "All time",
         },
-        rightIcon: <ReceiptText className="h-4 w-4"/>,
+        rightIcon: <ReceiptText className="h-4 w-4" />,
         iconBgColor: "bg-[#38119F]",
       },
     ],
@@ -327,8 +334,8 @@ export function SupportPage() {
           <SectionCards cards={helpdeskCards} layout="1x4" />
 
           <div className="space-y-6">
-            <div className="rounded-lg border bg-card py-6 mb-6">
-              <div className="items-center px-6 mb-8">
+            <div className="rounded-lg border bg-card py-6">
+              <div className="items-center px-6 mb-4">
                 <h2 className="text-2xl font-bold mb-3">Helpdesk Tickets</h2>
                 <p className="text-muted-foreground">
                   Manage customer support requests and inquiries
@@ -426,28 +433,20 @@ export function SupportPage() {
                 </div>
               </div>
 
-              {/* Results Count */}
-              <div className="px-6 mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {filteredTickets.length} of {tickets.length} tickets
-                  {(selectedStatuses.length > 0 || searchQuery) &&
-                    " (filtered)"}
-                  {loading && " - Loading..."}
-                </p>
+              <div className="px-6">
+                <DataTable
+                  data={filteredTickets}
+                  fields={ticketFields}
+                  actions={ticketActions}
+                  enableSelection={true}
+                  enablePagination={true}
+                  pageSize={10}
+                  loading={loading}
+                  onRowClick={(row) => {
+                    console.log("Ticket clicked:", row);
+                  }}
+                />
               </div>
-
-              <DataTable
-                data={filteredTickets}
-                fields={ticketFields}
-                actions={ticketActions}
-                enableSelection={true}
-                enablePagination={true}
-                pageSize={10}
-                loading={loading}
-                onRowClick={(row) => {
-                  console.log("Ticket clicked:", row);
-                }}
-              />
             </div>
           </div>
 

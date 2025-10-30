@@ -14,14 +14,15 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useReduxAuth } from "@/hooks/UseReduxAuth";
 import { useReduxProfile } from "@/hooks/useReduxProfile";
+import type { UserProfile } from "@/redux/slices/profileSlice";
 import { Check } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 type SettingsTab = "personal" | "password" | "department";
 
-// Simplified interface for user profile updates
 interface UserProfileData {
   firstName?: string;
   lastName?: string;
@@ -29,6 +30,20 @@ interface UserProfileData {
   phone?: string;
   department?: string;
   primaryRole?: string;
+}
+
+function isUserProfile(user: any): user is UserProfile {
+  return (
+    user && ("department" in user || "phone" in user || "primaryRole" in user)
+  );
+}
+
+function getProfileProperty(user: any, property: keyof UserProfile): string {
+  if (isUserProfile(user)) {
+    const val = user[property];
+    return typeof val === "string" ? val : "";
+  }
+  return "";
 }
 
 export function SettingsPage() {
@@ -39,16 +54,27 @@ export function SettingsPage() {
     confirmPassword: "",
   });
 
-  // Simplified state for user profile updates
   const [pendingUpdates, setPendingUpdates] = useState<
     Partial<UserProfileData>
   >({});
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const { userProfile, updating, changePassword } = useReduxProfile();
+  // Use both hooks - auth for current user, profile for operations
+  const { user: currentUser } = useReduxAuth();
+  const { updating, changePassword, getUserProfile, userProfile } =
+    useReduxProfile();
 
-  // Add missing function implementations
+  // Fetch profile data when component mounts or current user changes
+  useEffect(() => {
+    if (currentUser?.id) {
+      getUserProfile();
+    }
+  }, [currentUser?.id, getUserProfile]);
+
+  // Prefer userProfile from profile slice (has all properties), fallback to currentUser
+  const displayUser = userProfile || currentUser;
+
   const getInitials = (name: string): string => {
     return name
       .split(" ")
@@ -84,7 +110,7 @@ export function SettingsPage() {
     }
 
     try {
-      // Implement your save logic here
+      // Implement your save logic here using userProfile operations
       console.log("Saving all changes:", pendingUpdates);
 
       // Reset states after successful save
@@ -96,7 +122,6 @@ export function SettingsPage() {
     }
   };
 
-  // Simplified handleSave function for user profile fields only
   const handleSave = async (field: string, value: string) => {
     console.log(`Saving ${field}:`, value);
 
@@ -126,7 +151,6 @@ export function SettingsPage() {
           break;
       }
 
-      // Add to pending updates
       setPendingUpdates((prev) => ({ ...prev, ...updates }));
       setHasUnsavedChanges(true);
 
@@ -171,7 +195,7 @@ export function SettingsPage() {
               onValueChange={(value) => setActiveTab(value as SettingsTab)}
               className="px-6 w-full bg-transparent rounded-none"
             >
-              <TabsList className="grid w-full max-w-full grid-cols-3 rounded-none p-0 bg-transparent border-b mb-2">
+              <TabsList className="grid w-full max-w-full grid-cols-2 rounded-none p-0 bg-transparent border-b mb-2">
                 <TabsTrigger
                   className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent"
                   value="personal"
@@ -184,18 +208,17 @@ export function SettingsPage() {
                 >
                   Password
                 </TabsTrigger>
-                <TabsTrigger
+                {/* <TabsTrigger
                   className="bg-transparent border-0 rounded-none data-[state=active]:border-b-1 data-[state=active]:border-[#5014D0] data-[state=active]:text-[#5014D0] data-[state=active]:shadow-none data-[state=active]:dark:border-[#5014D0] data-[state=active]:dark:text-[#5014D0] data-[state=active]:dark:bg-transparent"
                   value="department"
                 >
                   Department Access
-                </TabsTrigger>
+                </TabsTrigger> */}
               </TabsList>
 
               <TabsContent value="personal" className="mt-0">
                 <Card className="overflow-hidden border-0 px-0">
                   <CardHeader className="relative">
-                    {/* Profile Image positioned over the cover image */}
                     <div className="mb-5">
                       <CardTitle className="text-md mb-1">
                         Personal Information
@@ -210,15 +233,15 @@ export function SettingsPage() {
                       <ProfileImageComponent
                         src={profileImage || ""}
                         alt={`${
-                          userProfile?.firstName || "User"
+                          displayUser?.firstName || "User"
                         } profile image`}
                         onImageChange={handleProfileImageChange}
                         onImageRemove={handleProfileImageRemove}
                         editable={true}
                         size="lg"
                         fallback={getInitials(
-                          `${userProfile?.firstName || ""} ${
-                            userProfile?.lastName || ""
+                          `${displayUser?.firstName || ""} ${
+                            displayUser?.lastName || ""
                           }`.trim() || "User"
                         )}
                         className="border-2 border-muted mt-4"
@@ -229,19 +252,19 @@ export function SettingsPage() {
                   <CardContent className="space-y-6">
                     <Separator />
 
-                    {/* Contact Information - Fixed grid structure */}
+                    {/* Contact Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Left Column */}
                       <div className="space-y-4">
                         <ProfileInput
                           label="First Name"
-                          value={userProfile?.firstName || "No first name"}
+                          value={displayUser?.firstName || "No first name"}
                           isEditable={true}
                           onSave={(value) => handleSave("firstName", value)}
                         />
                         <ProfileInput
                           label="Email"
-                          value={userProfile?.email || "No email"}
+                          value={displayUser?.email || "No email"}
                           isEditable={true}
                           onSave={(value) => handleSave("email", value)}
                         />
@@ -249,7 +272,10 @@ export function SettingsPage() {
                         <div>
                           <ProfileSelect
                             label="Department"
-                            value={userProfile?.department || ""}
+                            value={getProfileProperty(
+                              displayUser,
+                              "department"
+                            )}
                             options={[
                               { value: "marketing", label: "Marketing" },
                               { value: "sales", label: "Sales" },
@@ -268,13 +294,16 @@ export function SettingsPage() {
                       <div className="space-y-4">
                         <ProfileInput
                           label="Last Name"
-                          value={userProfile?.lastName || "No last name"}
+                          value={displayUser?.lastName || "No last name"}
                           isEditable={true}
                           onSave={(value) => handleSave("lastName", value)}
                         />
                         <ProfileInput
                           label="Phone Number"
-                          value={userProfile?.phone || "No phone number"}
+                          value={
+                            getProfileProperty(displayUser, "phone") ||
+                            "No phone number"
+                          }
                           isEditable={true}
                           onSave={(value) => handleSave("phone", value)}
                         />
@@ -282,7 +311,10 @@ export function SettingsPage() {
                         <div>
                           <ProfileSelect
                             label="Primary Role"
-                            value={userProfile?.primaryRole || ""}
+                            value={getProfileProperty(
+                              displayUser,
+                              "primaryRole"
+                            )}
                             options={[
                               { value: "admin", label: "Administrator" },
                               { value: "manager", label: "Manager" },
@@ -292,7 +324,6 @@ export function SettingsPage() {
                             ]}
                             isEditable={false}
                             onSave={(value) => handleSave("primaryRole", value)}
-                            
                           />
                         </div>
                       </div>
@@ -310,7 +341,7 @@ export function SettingsPage() {
                       </Button>
                       <Button
                         variant={"secondary"}
-                        className="w-full flex-1 h-12 text-md bg-[#5014D0]"
+                        className="w-full flex-1 h-12 text-md bg-[#5014D0] hover:bg-[#5014D0]/90 text-white"
                         onClick={handleSaveAllChanges}
                         disabled={!hasUnsavedChanges || updating}
                       >
@@ -466,8 +497,7 @@ export function SettingsPage() {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="department" className="mt-0">
-                {/* Add department access content here */}
+              {/* <TabsContent value="department" className="mt-0">
                 <Card className="w-full border-0">
                   <CardHeader>
                     <CardTitle className="text-xl mb-1">
@@ -481,7 +511,7 @@ export function SettingsPage() {
                     <p>Department access management coming soon...</p>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              </TabsContent> */}
             </Tabs>
           </Card>
         </div>

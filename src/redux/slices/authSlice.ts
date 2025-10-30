@@ -28,6 +28,7 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
+  initialLoading: boolean;
   error: string | null;
   token: string | null;
   refreshToken: string | null;
@@ -37,6 +38,7 @@ const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   loading: false,
+  initialLoading: true,
   error: null,
   token: null,
   refreshToken: null,
@@ -45,7 +47,7 @@ const initialState: AuthState = {
 // 🗂️ localStorage utility functions
 const storage = {
   getItem: (key: string) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         const item = localStorage.getItem(key);
         return item ? JSON.parse(item) : null;
@@ -56,9 +58,9 @@ const storage = {
     }
     return null;
   },
-  
+
   setItem: (key: string, value: any) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         localStorage.setItem(key, JSON.stringify(value));
       } catch (error) {
@@ -66,9 +68,9 @@ const storage = {
       }
     }
   },
-  
+
   removeItem: (key: string) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         localStorage.removeItem(key);
       } catch (error) {
@@ -76,32 +78,35 @@ const storage = {
       }
     }
   },
-  
+
   clear: () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
-        localStorage.removeItem('authData');
+        localStorage.removeItem("authData");
       } catch (error) {
-        console.error('Error clearing auth data from localStorage:', error);
+        console.error("Error clearing auth data from localStorage:", error);
       }
     }
-  }
+  },
 };
 
 // 🔐 Load initial state from localStorage
+// In your authSlice.ts
 export const loadAuthState = createAsyncThunk(
   "auth/loadAuthState",
-  async (_, { dispatch }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const authData = storage.getItem('authData');
+      const authData = storage.getItem("authData");
       if (authData && authData.token && authData.user) {
-        dispatch(setUser(authData));
+        console.log("✅ Auth state loaded from localStorage:", authData);
         return authData;
       }
+      console.log("ℹ️ No auth data found in localStorage");
+      return rejectWithValue("No persisted auth data found");
     } catch (error) {
-      console.error('Error loading auth state from localStorage:', error);
+      console.error("Error loading auth state from localStorage:", error);
+      return rejectWithValue("Failed to load auth state");
     }
-    return null;
   }
 );
 
@@ -113,14 +118,17 @@ export const login = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await api.post("/api/v1/auth/login", { email, password });
+      const response = await api.post("/api/v1/auth/login", {
+        email,
+        password,
+      });
 
       console.log("Login response:", response.data);
 
       // Handle the actual API response format
       if (response.data && response.data.accessToken && response.data.user) {
         const authData: AuthResponse = response.data;
-        
+
         // Save to localStorage
         const authState = {
           user: authData.user,
@@ -128,10 +136,10 @@ export const login = createAsyncThunk(
           refreshToken: authData.refreshToken,
           tokenType: authData.tokenType,
         };
-        
-        storage.setItem('authData', authState);
-        console.log('✅ Auth data saved to localStorage');
-        
+
+        storage.setItem("authData", authState);
+        console.log("✅ Auth data saved to localStorage");
+
         return authState;
       }
 
@@ -154,7 +162,7 @@ export const login = createAsyncThunk(
 
 // 🔐 Logout - with localStorage cleanup
 export const logoutAsync = createAsyncThunk(
-  "auth/logout", 
+  "auth/logout",
   async (_, { dispatch }) => {
     try {
       // If you have a logout endpoint, call it here
@@ -165,8 +173,8 @@ export const logoutAsync = createAsyncThunk(
     } finally {
       // Clear localStorage
       storage.clear();
-      console.log('✅ Auth data cleared from localStorage');
-      
+      console.log("✅ Auth data cleared from localStorage");
+
       // Always clear local auth state
       dispatch(logout());
       return true;
@@ -192,9 +200,9 @@ const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken || null;
       state.isAuthenticated = true;
       state.error = null;
-      
+
       // Save to localStorage when manually setting user
-      storage.setItem('authData', {
+      storage.setItem("authData", {
         user: action.payload.user,
         token: action.payload.token,
         refreshToken: action.payload.refreshToken,
@@ -207,16 +215,16 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.loading = false;
-      
+
       // Clear localStorage
       storage.clear();
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
-        
+
         // Update localStorage
-        storage.setItem('authData', {
+        storage.setItem("authData", {
           user: state.user,
           token: state.token,
           refreshToken: state.refreshToken,
@@ -225,10 +233,10 @@ const authSlice = createSlice({
     },
     setToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
-      
+
       // Update localStorage
       if (state.user) {
-        storage.setItem('authData', {
+        storage.setItem("authData", {
           user: state.user,
           token: action.payload,
           refreshToken: state.refreshToken,
@@ -252,10 +260,10 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
         state.isAuthenticated = true;
         state.error = null;
-        
+
         console.log("Auth state updated:", {
           user: action.payload.user,
-          isAuthenticated: true
+          isAuthenticated: true,
         });
       })
       .addCase(login.rejected, (state, action) => {
@@ -265,7 +273,7 @@ const authSlice = createSlice({
         state.refreshToken = null;
         state.isAuthenticated = false;
         state.error = action.payload as string;
-        
+
         // Clear localStorage on login failure
         storage.clear();
       })
@@ -276,6 +284,23 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.error = null;
         state.loading = false;
+      })
+      .addCase(loadAuthState.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.refreshToken = action.payload.refreshToken;
+        state.isAuthenticated = true;
+        state.loading = false;
+        state.error = null;
+        console.log("✅ Auth state restored from localStorage");
+      })
+      .addCase(loadAuthState.rejected, (state) => {
+        state.loading = false;
+        // Don't set error here as it's normal for first-time users
+        console.log("ℹ️ No persisted auth state found");
+      })
+      .addCase(loadAuthState.pending, (state) => {
+        state.loading = true;
       });
   },
 });

@@ -20,7 +20,7 @@ interface AddCategoryDialogProps {
 }
 
 export interface CategoryFormData {
-  categoryType: "fashion" | "nightlife";
+  categoryType: "FASHION" | "NIGHTLIFE";
   categoryName: string;
   description: string;
   categoryImage: File | null;
@@ -33,7 +33,7 @@ export function AddCategoryDialog({
   onSubmit,
 }: AddCategoryDialogProps) {
   const [formData, setFormData] = useState<CategoryFormData>({
-    categoryType: "fashion",
+    categoryType: "FASHION",
     categoryName: "",
     description: "",
     categoryImage: null,
@@ -60,7 +60,7 @@ export function AddCategoryDialog({
     onOpenChange(false);
     // Reset form
     setFormData({
-      categoryType: "fashion",
+      categoryType: "FASHION",
       categoryName: "",
       description: "",
       categoryImage: null,
@@ -72,7 +72,7 @@ export function AddCategoryDialog({
     onOpenChange(false);
     // Reset form on close
     setFormData({
-      categoryType: "fashion",
+      categoryType: "FASHION",
       categoryName: "",
       description: "",
       categoryImage: null,

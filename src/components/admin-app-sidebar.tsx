@@ -2,14 +2,15 @@ import * as React from "react";
 import {
   Building2,
   CalendarDays,
+  Drama,
   FileSpreadsheet,
   Flame,
   Landmark,
   LayoutDashboardIcon,
   LogOut,
-  Megaphone,
   MessageCircleQuestionMark,
   SettingsIcon,
+  Shirt,
   Speaker,
   Users,
 } from "lucide-react";
@@ -60,14 +61,22 @@ export function AdminAppSidebar({
         icon: Users,
       },
       {
-        title: "Campaigns",
-        url: "/admin/campaigns",
-        icon: Megaphone,
-      },
-      {
         title: "Hot or Not",
-        url: "/admin/hot-or-not",
         icon: Flame,
+        items: [
+          {
+            title: "Fashion",
+            url: "/admin/hot-or-not/fashion",
+            exactMatch: true,
+            icon: Shirt
+          },
+          {
+            title: "Nightlife",
+            url: "/admin/hot-or-not/nightlife",
+            exactMatch: true,
+            icon: Drama
+          },
+        ],
       },
       {
         title: "Find your DJ",

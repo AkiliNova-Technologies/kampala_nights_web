@@ -305,7 +305,7 @@ export function ReportedCasesPage() {
   // Handle row click to view details
   const handleRowClick = useCallback((row: ReportedCase) => {
     setSelectedCase(row);
-    setIsDialogOpen(true);
+    // setIsDialogOpen(true);
   }, []);
 
   const caseFields = useMemo(

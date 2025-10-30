@@ -5,12 +5,16 @@ import App from "./App.tsx";
 import { ThemeProvider } from "./context/theme-context.tsx";
 import { Provider } from "react-redux";
 import { store } from "@/redux/store.ts";
+import { AuthInitializer } from "./components/authInitializer.tsx";
+
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
       <Provider store={store}>
-        <App />
+        <AuthInitializer>
+          <App />
+        </AuthInitializer>
       </Provider>
     </ThemeProvider>
   </StrictMode>

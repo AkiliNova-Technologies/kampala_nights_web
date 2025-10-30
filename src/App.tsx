@@ -18,7 +18,7 @@ import { DashboardHome } from "./pages/admin/DashboardHome";
 import { BusinessesPage } from "./pages/admin/Businesses";
 import { CampaignsPage } from "./pages/admin/Campaigns";
 import { EventsPage } from "./pages/admin/Events";
-import { HotOrNotPage } from "./pages/admin/HotorNot";
+import { HotOrNotFashionPage } from "./pages/admin/HotorNotFashion";
 import { ModerationPage } from "./pages/admin/Moderation";
 import { RevenuePage } from "./pages/admin/Revenue";
 import { SettingsPage } from "./pages/admin/Settings";
@@ -57,6 +57,7 @@ import { AddYourDJPage } from "./pages/admin/AddYourDJ";
 import { ReportedCasesPage } from "./pages/admin/ReportedCases";
 import { EditYourDJPage } from "./pages/admin/EditYourDJ";
 import { ViewYourDJPage } from "./pages/admin/ViewYourDJ";
+import { HotOrNotNightlifePage } from "./pages/admin/HotorNotNightlife";
 
 function App() {
   return (
@@ -102,9 +103,11 @@ function App() {
               <Route path=":id" element={<EventDetailsPage />} />
             </Route>
             <Route path="hot-or-not" element={<HotorNotPageLayout />}>
-              <Route index element={<HotOrNotPage />} />
+              <Route index element={<HotOrNotFashionPage />} />
+              <Route path="fashion" element={<HotOrNotFashionPage />} />
+              <Route path="nightlife" element={<HotOrNotNightlifePage />} />
               <Route
-                path="add-category"
+                path="add-category/:theme?"
                 element={<HotorNotAddCategoryPage />}
               />
             </Route>

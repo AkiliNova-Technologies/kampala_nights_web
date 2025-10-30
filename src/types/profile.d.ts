@@ -14,7 +14,7 @@ export interface Profile {
 
   // Status and Visibility
   status: "active" | "disabled" | "draft";
-  visibility: "public" | "private";
+  visibility?: "public" | "private";
 
   // Location
   location: string;

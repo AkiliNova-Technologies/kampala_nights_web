@@ -5,15 +5,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Image } from "@/components/ui/image";
-import { Plus, X, ArrowLeft } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ImageUploadField } from "@/components/image-upload-field";
-import contest1 from "@/assets/images/contestant1.jpg";
-import contest2 from "@/assets/images/contestant2.jpg";
-import contest3 from "@/assets/images/contestant3.jpg";
-import contest4 from "@/assets/images/contestant4.jpg";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { NominateContestantsDialog } from "@/components/nominate-contestants-dialog";
+import { useReduxHotOrNot } from "@/hooks/useReduxHotOrNot";
+import { toast } from "sonner";
 
 interface Contestant {
   id: string;
@@ -26,6 +24,8 @@ interface Contestant {
 interface FormData {
   categoryName: string;
   description: string;
+  theme: "FASHION" | "NIGHTLIFE";
+  status: string;
   countdownDuration: number | undefined;
   startDate: Date | undefined;
   categoryImage: string | null;
@@ -34,75 +34,26 @@ interface FormData {
 
 export function HotorNotAddCategoryPage() {
   const navigate = useNavigate();
+  const { theme } = useParams<{ theme: string }>();
+
+  // Use the theme from URL params, default to "FASHION" if not provided
+  const currentTheme =
+    (theme?.toUpperCase() as "FASHION" | "NIGHTLIFE") || "FASHION";
+
+  const { createContest, error } = useReduxHotOrNot({ mode: "admin" });
 
   const [formData, setFormData] = useState<FormData>({
     categoryName: "",
     description: "",
+    theme: currentTheme,
+    status: "",
     countdownDuration: undefined,
-    startDate: new Date(2025, 9, 24), // October 24, 2025
+    startDate: undefined,
     categoryImage: null,
     selectedContestants: [],
   });
 
-  // Mock data for available contestants
-  const availableContestants: Contestant[] = [
-    {
-      id: "1",
-      name: "Olivia Nalugya",
-      username: "olivia_nalugya",
-      description: "Effortless charm and free-spirited style",
-      imageUrl: contest1,
-    },
-    {
-      id: "2",
-      name: "Hanifa Nalugya",
-      username: "hanifa_nalugya",
-      description: "Effortless charm and free-spirited style",
-      imageUrl: contest2,
-    },
-    {
-      id: "3",
-      name: "Sarah Nakato",
-      username: "sarah_nakato",
-      description: "Effortless charm and free-spirited style",
-      imageUrl: contest3,
-    },
-    {
-      id: "4",
-      name: "Grace Auma",
-      username: "grace_auma",
-      description: "Effortless charm and free-spirited style",
-      imageUrl: contest4,
-    },
-    {
-      id: "5",
-      name: "Olivia Nalugya",
-      username: "olivia_nalugya",
-      description: "Effortless charm and free-spirited style",
-      imageUrl: contest1,
-    },
-    {
-      id: "6",
-      name: "Hanifa Nalugya",
-      username: "hanifa_nalugya",
-      description: "Effortless charm and free-spirited style",
-      imageUrl: contest2,
-    },
-    {
-      id: "7",
-      name: "Sarah Nakato",
-      username: "sarah_nakato",
-      description: "Effortless charm and free-spirited style",
-      imageUrl: contest3,
-    },
-    {
-      id: "8",
-      name: "Grace Auma",
-      username: "grace_auma",
-      description: "Effortless charm and free-spirited style",
-      imageUrl: contest4,
-    },
-  ];
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({
@@ -131,10 +82,67 @@ export function HotorNotAddCategoryPage() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Form data:", formData);
+
+    if (!isFormSubmittable) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const now = new Date();
+      const startTime = formData.startDate || new Date();
+      const hasMinimumContestants = formData.selectedContestants.length >= 2;
+
+      let status: "DRAFT" | "ACTIVE" = "DRAFT";
+
+      if (startTime <= now && hasMinimumContestants) {
+        status = "ACTIVE";
+      }
+
+      // Prepare contest data in the correct format for the API
+      const contestData = {
+        name: formData.categoryName,
+        description: formData.description,
+        theme: currentTheme,
+        status: status, // Dynamic status
+        category: formData.categoryName,
+        durationHours: formData.countdownDuration || 24,
+        startTime: startTime.toISOString(),
+        coverImageUrl: formData.categoryImage,
+
+        nominees: formData.selectedContestants.map((contestant) => ({
+          name: contestant.name,
+          description: contestant.description,
+          imageUrl: contestant.imageUrl,
+        })),
+      };
+
+      console.log("Creating contest with status:", status, {
+        hasMinimumContestants,
+        startTime: startTime.toISOString(),
+        now: now.toISOString(),
+        isPastOrPresent: startTime <= now,
+      });
+
+      const result = await createContest(contestData);
+
+      if (result.meta.requestStatus === "fulfilled") {
+        toast.success(
+          `${currentTheme} campaign created successfully as ${status}!`
+        );
+        navigate(-1);
+      } else {
+        throw new Error(result.payload || "Failed to create campaign");
+      }
+    } catch (error: any) {
+      console.error("Error creating campaign:", error);
+      toast.error(
+        error.message || "Failed to create campaign. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -146,9 +154,23 @@ export function HotorNotAddCategoryPage() {
     formData.description.trim() !== "" &&
     formData.selectedContestants.length > 0;
 
+  // Calculate current status for display
+  // const calculateCurrentStatus = () => {
+  //   const now = new Date();
+  //   const startTime = formData.startDate || new Date();
+  //   const hasMinimumContestants = formData.selectedContestants.length >= 2;
+
+  //   if (startTime <= now && hasMinimumContestants) {
+  //     return "ACTIVE";
+  //   }
+  //   return "DRAFT";
+  // };
+
+  // const currentStatus = calculateCurrentStatus();
+
   return (
     <div className="min-h-screen">
-      <SiteHeader label="Hot or Not Management" />
+      <SiteHeader label={`Hot or Not`} />
       <main className="flex-1">
         <div className="space-y-6 p-6">
           <div className="flex items-center justify-between">
@@ -157,20 +179,64 @@ export function HotorNotAddCategoryPage() {
                 type="button"
                 variant={"secondary"}
                 onClick={() => navigate(-1)}
+                disabled={isSubmitting}
               >
                 <ArrowLeft />
               </Button>
               <div>
-                <p className="font-semibold">Add Campaign</p>
+                <p className="font-semibold">
+                  Add {currentTheme.toLowerCase()} campaign
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Add category details and nominate contestants
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {/* Status Preview */}
+          {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-blue-900">Campaign Status</h3>
+                <p className="text-sm text-blue-700">
+                  This campaign will be created as: <strong>{currentStatus}</strong>
+                </p>
+                {currentStatus === "DRAFT" && (
+                  <div className="text-xs text-blue-600 mt-1">
+                    {formData.selectedContestants.length < 2 ? (
+                      "• Need at least 2 contestants to activate"
+                    ) : (
+                      "• Start date is in the future"
+                    )}
+                  </div>
+                )}
+                {currentStatus === "ACTIVE" && (
+                  <div className="text-xs text-green-600 mt-1">
+                    • Ready to launch immediately
+                  </div>
+                )}
+              </div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                currentStatus === "ACTIVE" 
+                  ? "bg-green-100 text-green-800" 
+                  : "bg-yellow-100 text-yellow-800"
+              }`}>
+                {currentStatus}
+              </div>
+            </div>
+          </div> */}
+
           <Card className="rounded-lg border border-border bg-card p-6 shadow-sm">
             <form onSubmit={handleSubmit} className="space-y-6 px-6 pb-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 {/* Campaign Name */}
                 <div className="space-y-2">
                   <Label htmlFor="categoryName" className="text-sm font-medium">
@@ -185,40 +251,8 @@ export function HotorNotAddCategoryPage() {
                     }
                     required
                     className="h-11"
+                    disabled={isSubmitting}
                   />
-                </div>
-                {/* Campaign category */}
-                <div className="space-y-2">
-                  <Label htmlFor="categoryName" className="text-sm font-medium">
-                    Campaign Category
-                  </Label>
-                  <RadioGroup
-                    value={formData.categoryName}
-                    onValueChange={(value) =>
-                      handleInputChange("categoryName", value)
-                    }
-                    className="flex gap-12 pt-2"
-                    required
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Nightlife" id="nightlife" />
-                      <Label
-                        htmlFor="nightlife"
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        Nightlife
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Fashion" id="fashion" />
-                      <Label
-                        htmlFor="fashion"
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        Fashion
-                      </Label>
-                    </div>
-                  </RadioGroup>
                 </div>
               </div>
 
@@ -237,6 +271,7 @@ export function HotorNotAddCategoryPage() {
                   rows={3}
                   required
                   className="resize-none"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -248,6 +283,7 @@ export function HotorNotAddCategoryPage() {
                 formats="JPEG or PNG"
                 maxSize={10}
                 onImageUpload={handleImageChange}
+                existingImageUrl={formData.categoryImage}
               />
 
               {/* Countdown Duration */}
@@ -274,6 +310,7 @@ export function HotorNotAddCategoryPage() {
                         )
                       }
                       className="w-full flex-1 h-11"
+                      disabled={isSubmitting}
                     />
                     <span className="text-sm text-muted-foreground">Hours</span>
                   </div>
@@ -287,13 +324,13 @@ export function HotorNotAddCategoryPage() {
                   <Input
                     id="event-date"
                     type="date"
-                    // value={formData.eventDate}
-                    // onChange={(e) =>
-                    //   handleInputChange("eventDate", e.target.value)
-                    // }
+                    value={formData.startDate?.toISOString().split("T")[0]}
+                    onChange={(e) =>
+                      handleInputChange("startDate", new Date(e.target.value))
+                    }
                     className="h-11"
                     required
-                    disabled={!isFormSubmittable}
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -311,11 +348,14 @@ export function HotorNotAddCategoryPage() {
                     <p className="text-sm text-muted-foreground">
                       Add or remove users from this category
                     </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Minimum 2 contestants required for active campaigns
+                    </p>
                   </div>
-                  {/* <Button type="button" variant="outline" size="sm">
-                    <Plus className="size-4 mr-2" />
-                    Nominate Contestants
-                  </Button> */}
+                  <NominateContestantsDialog
+                    title={formData.categoryName}
+                    onAddContestant={addContestant}
+                  />
                 </div>
 
                 {/* Selected Contestants */}
@@ -325,7 +365,7 @@ export function HotorNotAddCategoryPage() {
                       key={contestant.id}
                       className="flex flex-col items-center justify-between p-0 border rounded-lg w-2xs relative"
                     >
-                      <div className="flex flex-col items-center gap-3 w-full">
+                      <div className="flex flex-col items-start gap-3 w-full">
                         <Image
                           src={contestant.imageUrl || "/api/placeholder/40/40"}
                           alt={contestant.name}
@@ -345,6 +385,7 @@ export function HotorNotAddCategoryPage() {
                         size="icon"
                         onClick={() => removeContestant(contestant.id)}
                         className="absolute -top-5 -right-5 rounded-full bg-input"
+                        disabled={isSubmitting}
                       >
                         <X className="size-4" />
                       </Button>
@@ -359,48 +400,6 @@ export function HotorNotAddCategoryPage() {
                     </div>
                   )}
                 </div>
-
-                {/* Available Contestants */}
-                <div className="space-y-3">
-                  <h3 className="font-medium text-sm text-muted-foreground">
-                    Available Contestants
-                  </h3>
-                  {availableContestants
-                    .filter(
-                      (contestant) =>
-                        !formData.selectedContestants.find(
-                          (c) => c.id === contestant.id
-                        )
-                    )
-                    .map((contestant) => (
-                      <div
-                        key={contestant.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                        onClick={() => addContestant(contestant)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Image
-                            src={
-                              contestant.imageUrl || "/api/placeholder/40/40"
-                            }
-                            alt={contestant.name}
-                            size="sm"
-                            radius="full"
-                            fit="cover"
-                          />
-                          <div>
-                            <p className="font-medium">{contestant.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {contestant.description}
-                            </p>
-                          </div>
-                        </div>
-                        <Button type="button" variant="outline" size="sm">
-                          <Plus className="size-4" />
-                        </Button>
-                      </div>
-                    ))}
-                </div>
               </div>
 
               {/* Actions */}
@@ -410,15 +409,24 @@ export function HotorNotAddCategoryPage() {
                   variant="outline"
                   onClick={handleClose}
                   className="flex-1 h-11"
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-[#5014D0] hover:bg-[#4512B8] h-11 flex-1 text-white"
-                  disabled={!isFormSubmittable}
+                  variant={"secondary"}
+                  className="bg-[#5014D0] hover:bg-[#5014D0]/90 h-11 flex-1 text-white"
+                  disabled={!isFormSubmittable || isSubmitting}
                 >
-                  Create Campaign
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Creating...
+                    </>
+                  ) : (
+                    `Create Campaign`
+                  )}
                 </Button>
               </div>
             </form>

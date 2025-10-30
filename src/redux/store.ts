@@ -3,6 +3,8 @@ import authReducer from "./slices/authSlice";
 import businessReducer from "./slices/businessSlice";
 import eventReducer from "./slices/eventSlice";
 import profileReducer from "./slices/profileSlice";
+import djProfileReducer from "./slices/djProfileSlice";
+import hotOrNotReducer from "./slices/hotOrNotSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +12,8 @@ export const store = configureStore({
     business: businessReducer,
     event: eventReducer,
     profile: profileReducer,
+    djProfile: djProfileReducer,
+    hotOrNot: hotOrNotReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -9,7 +9,6 @@ import demo5 from "@/assets/images/hOn5.png";
 import demo6 from "@/assets/images/hOn6.png";
 import type { Campaign } from "@/types/campaign";
 
-
 export function useHotOrNotCampaigns() {
   const [campaigns] = useState<Campaign[]>([
     {
@@ -45,7 +44,7 @@ export function useHotOrNotCampaigns() {
       ],
       totalVotes: 2100,
       endDate: "2025-09-26",
-      category: "Nightlife",
+      category: "NIGHTLIFE", // Changed from "Nightlife" to "NIGHTLIFE"
       imageUrl: demo1,
     },
     {
@@ -81,7 +80,7 @@ export function useHotOrNotCampaigns() {
       ],
       totalVotes: 2100,
       endDate: "2025-09-26",
-      category: "Fashion",
+      category: "FASHION", // Already correct
       imageUrl: demo2,
     },
     {
@@ -117,7 +116,7 @@ export function useHotOrNotCampaigns() {
       ],
       totalVotes: 2100,
       endDate: "2025-09-26",
-      category: "Fashion",
+      category: "FASHION", // Changed from "Fashion" to "FASHION"
       imageUrl: demo3,
     },
     {
@@ -147,7 +146,7 @@ export function useHotOrNotCampaigns() {
       ],
       totalVotes: 0,
       endDate: "2025-10-15",
-      category: "Fashion",
+      category: "FASHION", // Changed from "Fashion" to "FASHION"
       imageUrl: demo4,
     },
     {
@@ -191,7 +190,7 @@ export function useHotOrNotCampaigns() {
       ],
       totalVotes: 4500,
       endDate: "2025-08-30",
-      category: "Nightlife",
+      category: "NIGHTLIFE", // Changed from "Nightlife" to "NIGHTLIFE"
       imageUrl: demo5,
     },
     {
@@ -231,7 +230,7 @@ export function useHotOrNotCampaigns() {
       ],
       totalVotes: 3200,
       endDate: "2025-10-05",
-      category: "Nightlife",
+      category: "NIGHTLIFE", // Changed from "Nightlife" to "NIGHTLIFE"
       imageUrl: demo6,
     },
   ]);

@@ -5,7 +5,7 @@ export interface Campaign {
   status: "active" | "completed" | "upcoming" | "draft";
   startDate?: string;
   endDate?: string;
-  category: "Fashion" | "Nightlife";
+  category: "FASHION" | "NIGHTLIFE";
   imageUrl?: string;
   contestants?: Array<{
     id: string;

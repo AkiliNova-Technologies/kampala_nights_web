@@ -682,11 +682,26 @@ function SidebarMenuSubButton({
       data-size={size}
       data-active={isActive}
       className={cn(
-        "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground [&>svg]:text-sidebar-accent-foreground flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 outline-hidden focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
-        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
-        size === "sm" && "text-xs",
-        size === "md" && "text-sm",
+        // Base styles
+        "flex w-full items-center gap-2 overflow-hidden rounded-r-sm p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding]",
+        // Hover and active states
+        "hover:bg-sidebar-accent hover:text-white hover:border-l-3 hover:dark:border-white",
+        "focus-visible:ring-2",
+        "active:bg-sidebar-accent active:border-l-3 active:text-white",
+        // Disabled states
+        "disabled:pointer-events-none disabled:opacity-50",
+        "aria-disabled:pointer-events-none aria-disabled:opacity-50",
+        // Active state styling (matches SidebarMenuButton)
+        "data-[active=true]:bg-[#5014D0] data-[active=true]:border-l-[#6366F1] data-[active=true]:dark:border-l-[#6366F1] data-[active=true]:font-medium data-[active=true]:text-white data-[active=true]:border-l-3",
+        // Open state
+        "data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-white",
+        // Collapsible behavior
         "group-data-[collapsible=icon]:hidden",
+        // Text and icon styling
+        "[&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+        // Size variants
+        size === "sm" && "text-xs h-7",
+        size === "md" && "text-sm h-8",
         className
       )}
       {...props}

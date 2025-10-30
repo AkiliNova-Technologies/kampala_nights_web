@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -65,7 +64,7 @@
   --chart-1: oklch(0.42 0.18 266);
   --chart-2: oklch(0.55 0.22 263);
   --chart-3: oklch(0.62 0.19 260);
-  --chart-4: oklch(0.81 0.10 252);
+  --chart-4: oklch(0.81 0.1 252);
   --chart-5: oklch(0.93 0.03 256);
   --sidebar: oklch(0.13 0.04 265);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
@@ -119,7 +118,12 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      sans-serif;
+    user-select: none;
+    -webkit-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none;
   }
 }
 
@@ -129,6 +133,9 @@
   }
   body {
     @apply bg-background text-foreground;
-
+    user-select: none;
+    -webkit-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none;
   }
 }

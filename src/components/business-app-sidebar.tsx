@@ -4,7 +4,7 @@ import {
   Handshake,
   LayoutDashboardIcon,
   LogOut,
-  Megaphone,
+  // Megaphone,
   PartyPopper,
   SettingsIcon,
   Wallet,
@@ -61,11 +61,11 @@ export function BusinessAppSidebar({
         url: "/business/invoices",
         icon: Wallet,
       },
-      {
-        title: "Promotions",
-        url: "/business/promotions",
-        icon: Megaphone,
-      },
+      // {
+      //   title: "Promotions",
+      //   url: "/business/promotions",
+      //   icon: Megaphone,
+      // },
       {
         title: "Settings",
         url: "/business/settings",

@@ -12,13 +12,20 @@ import {
 import { Search } from "@/components/ui/search";
 import { FilterIcon, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useDJProfiles } from "@/hooks/useDJProfiles";
-import { useState, useMemo } from "react";
+// import { useDJProfiles } from "@/hooks/useDJProfiles";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import { useReduxDJProfile } from "@/hooks/useReduxDJProfile";
 
 export function FindYourDJPage() {
   const navigate = useNavigate();
-  const { profiles, getStatistics } = useDJProfiles();
+  // const { profiles, getStatistics } = useDJProfiles();
+   const { 
+    profiles, 
+    getStatistics,
+    getAllDJs,
+    getTonightGigs 
+  } = useReduxDJProfile();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -44,6 +51,11 @@ export function FindYourDJPage() {
 
   // Get statistics
   const stats = getStatistics();
+
+  useEffect(() => {
+    getAllDJs();
+    getTonightGigs();
+  }, [getAllDJs, getTonightGigs]);
 
   const djCards: CardData[] = [
     {
